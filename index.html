@@ -275,6 +275,20 @@
             border-radius: 6px;
         }
 
+        .btn-quick {
+            background: #E0E0E0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .btn-quick:hover {
+            background: #D6D6D6;
+        }
+
         .btn-export {
             background-color: #2E7D32;
             color: white;
@@ -439,6 +453,11 @@
                     <input type="date" id="filter-end-date" onchange="updateManagerDashboard()">
                 </div>
                 <div>
+                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Pilihan Cepat:</label>
+                    <button class="btn-quick" onclick="setFilterToday()">Hari Ini</button>
+                    <button class="btn-quick" onclick="setFilterAll()">Semua Data</button>
+                </div>
+                <div>
                     <label style="font-size: 12px; display: block; margin-bottom: 4px;">Filter Menu:</label>
                     <select id="filter-menu" onchange="updateManagerDashboard()">
                         <option value="ALL">Semua Menu</option>
@@ -511,13 +530,21 @@
 
         // STATE APLIKASI
         let currentRole = null;
-        let cart = []; // Menampung banyak menu
-        let transactions = JSON.parse(localStorage.getItem('icbeku_transactions')) || [];
+        let cart = [];
+
+        // LOAD TRANSAKSI SINKRON MEMORI
+        function getStoredTransactions() {
+            return JSON.parse(localStorage.getItem('icbeku_transactions')) || [];
+        }
+
+        function saveTransactions(data) {
+            localStorage.setItem('icbeku_transactions', JSON.stringify(data));
+        }
 
         // INITIALIZE APP
         document.addEventListener('DOMContentLoaded', () => {
             renderMenuGrid();
-            setDefaultDates();
+            setFilterAll();
         });
 
         // 1. SISTEM LOGIN & NAVIGASI
@@ -559,7 +586,7 @@
             document.getElementById('page-login').classList.remove('hidden');
         }
 
-        // 2. LOGIKA RUMAH KASIR (MULTI-ITEM CART)
+        // 2. LOGIKA RUMAH KASIR
         function renderMenuGrid() {
             const container = document.getElementById('menu-list');
             container.innerHTML = MENU_LIST.map(item => `
@@ -672,22 +699,27 @@
                 return;
             }
 
-            // Generate 1 ID TRX unik untuk semua item di keranjang ini
             const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            const timeStr = now.toTimeString().split(' ')[0];
             const trxId = 'TRX-' + now.getTime().toString().slice(-6);
             
             const newTransaction = {
                 timestamp: now.toISOString(),
-                dateStr: now.toISOString().split('T')[0],
-                timeStr: now.toTimeString().split(' ')[0],
+                dateStr: dateStr,
+                timeStr: timeStr,
                 idTrx: trxId,
-                items: JSON.parse(JSON.stringify(cart)), // Menyimpan daftar menu yang dibeli
+                items: JSON.parse(JSON.stringify(cart)),
                 totalAmount: total,
                 paymentMethod: method
             };
 
+            const transactions = getStoredTransactions();
             transactions.push(newTransaction);
-            localStorage.setItem('icbeku_transactions', JSON.stringify(transactions));
+            saveTransactions(transactions);
 
             alert(`Transaksi Berhasil! (${trxId})`);
 
@@ -699,10 +731,22 @@
         }
 
         // 3. LOGIKA RUMAH MANAGER
-        function setDefaultDates() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('filter-start-date').value = today;
-            document.getElementById('filter-end-date').value = today;
+        function setFilterToday() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            document.getElementById('filter-start-date').value = dateStr;
+            document.getElementById('filter-end-date').value = dateStr;
+            updateManagerDashboard();
+        }
+
+        function setFilterAll() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            updateManagerDashboard();
         }
 
         function updateManagerDashboard() {
@@ -710,12 +754,23 @@
             const end = document.getElementById('filter-end-date').value;
             const menuFilter = document.getElementById('filter-menu').value;
 
-            let filteredTrx = transactions.filter(t => t.dateStr >= start && t.dateStr <= end);
+            const transactions = getStoredTransactions();
+
+            let filteredTrx = transactions.filter(t => {
+                let matchDate = true;
+                if (start && end) {
+                    matchDate = t.dateStr >= start && t.dateStr <= end;
+                } else if (start) {
+                    matchDate = t.dateStr >= start;
+                } else if (end) {
+                    matchDate = t.dateStr <= end;
+                }
+                return matchDate;
+            });
 
             let totalOmzet = 0;
             let totalCash = 0;
             let totalQris = 0;
-
             let tableRowsHtml = '';
 
             filteredTrx.forEach(t => {
@@ -747,7 +802,7 @@
             document.getElementById('stat-cash').innerText = `Rp ${totalCash.toLocaleString('id-ID')}`;
             document.getElementById('stat-qris').innerText = `Rp ${totalQris.toLocaleString('id-ID')}`;
 
-            document.getElementById('manager-table-body').innerHTML = tableRowsHtml;
+            document.getElementById('manager-table-body').innerHTML = tableRowsHtml || `<tr><td colspan="8" style="text-align:center; color:#888;">Belum ada data transaksi</td></tr>`;
         }
 
         // 4. EXPORT TO EXCEL (.XLS)
@@ -756,14 +811,21 @@
             const end = document.getElementById('filter-end-date').value;
             const menuFilter = document.getElementById('filter-menu').value;
 
-            let filteredTrx = transactions.filter(t => t.dateStr >= start && t.dateStr <= end);
+            const transactions = getStoredTransactions();
+
+            let filteredTrx = transactions.filter(t => {
+                let matchDate = true;
+                if (start && end) {
+                    matchDate = t.dateStr >= start && t.dateStr <= end;
+                }
+                return matchDate;
+            });
 
             if (filteredTrx.length === 0) {
                 alert('Tidak ada data transaksi pada periode ini untuk di-export.');
                 return;
             }
 
-            // Header Sesuai Format Klien
             let htmlTable = `
                 <table border="1">
                     <thead>
@@ -781,8 +843,6 @@
             filteredTrx.forEach(t => {
                 t.items.forEach(item => {
                     if (menuFilter === 'ALL' || item.id === menuFilter) {
-                        // Jika 1 menu dipesan lebih dari 1 qty (misal 2x C8), 
-                        // maka akan diexport per baris menu sesuai qty-nya
                         for (let i = 0; i < item.qty; i++) {
                             htmlTable += `
                                 <tr>
@@ -804,7 +864,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Penjualan_ICBEKU_${start}_to_${end}.xls`;
+            a.download = `Penjualan_ICBEKU_${start || 'ALL'}_to_${end || 'ALL'}.xls`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -814,7 +874,6 @@
         function resetAllTransactions() {
             if (confirm("Apakah Anda yakin ingin menghapus SELURUH riwayat transaksi?")) {
                 if (confirm("PERINGATAN: Tindakan ini tidak bisa dibatalkan! Hapus sekarang?")) {
-                    transactions = [];
                     localStorage.removeItem('icbeku_transactions');
                     updateManagerDashboard();
                     alert("Seluruh riwayat transaksi berhasil di-reset ke 0.");
