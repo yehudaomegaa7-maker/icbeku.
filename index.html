@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICBEKU - Point of Sale</title>
+    <!-- Chart.js untuk Grafik Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --sky-blue: #87CEEB;
+            --soft-blue: #E0F7FA;
+            --primary-blue: #0288D1;
+            --dark-blue: #01579B;
+            --white: #FFFFFF;
+            --gray-bg: #F4F7F9;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--text-color);
+        }
+
+        /* --- LOGIN PAGE --- */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--sky-blue), var(--soft-blue));
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        .login-card h1 {
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .login-card p {
+            color: #666;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--sky-blue);
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--dark-blue);
+        }
+
+        /* --- NAVIGATION HEADER --- */
+        header {
+            background-color: var(--white);
+            border-bottom: 3px solid var(--sky-blue);
+            padding: 15px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .btn-logout {
+            background: #FF5252;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* --- RUMAH KASIR --- */
+        .kasir-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .menu-card {
+            background: var(--white);
+            border: 2px solid var(--soft-blue);
+            border-radius: 12px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+
+        .menu-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .menu-card h4 {
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 5px;
+        }
+
+        .menu-card .badge {
+            display: inline-block;
+            background: var(--soft-blue);
+            color: var(--dark-blue);
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .menu-card .price {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .cart-panel {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cart-items {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .calc-box {
+            background: var(--soft-blue);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .payment-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .payment-type label {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #eee;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .payment-type input {
+            display: none;
+        }
+
+        .payment-type input:checked + span {
+            color: var(--primary-blue);
+        }
+
+        .payment-type label:has(input:checked) {
+            background: var(--sky-blue);
+            color: white;
+        }
+
+        /* --- RUMAH MANAGER --- */
+        .manager-layout {
+            padding: 24px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .filter-bar {
+            background: var(--white);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .btn-export {
+            background-color: #2E7D32;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--dark-blue);
+        }
+
+        .table-container {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: var(--soft-blue);
+            color: var(--dark-blue);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HALAMAN LOGIN -->
+    <div id="page-login" class="login-container">
+        <div class="login-card">
+            <h1>ICBEKU</h1>
+            <p>Sistem Kasir & Manajemen</p>
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <input type="password" id="pass-input" placeholder="Masukkan PIN Akses" maxlength="4" required autofocus>
+                </div>
+                <button type="submit" class="btn">Masuk</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP LAYOUT (Header + Content) -->
+    <div id="page-app" class="hidden">
+        <header>
+            <div class="logo">ICBEKU <span id="user-role" style="font-size:14px; color:#666; font-weight:normal;"></span></div>
+            <button class="btn-logout" onclick="logout()">Keluar</button>
+        </header>
+
+        <!-- 1. RUMAH KASIR -->
+        <div id="rumah-kasir" class="kasir-layout hidden">
+            <!-- Pilihan Menu -->
+            <div>
+                <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Pilih Menu</h3>
+                <div class="menu-grid" id="menu-list"></div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--dark-blue);">Riwayat Transaksi Terakhir</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>ID TRX</th>
+                                <th>ID Menu</th>
+                                <th>Harga</th>
+                                <th>Metode</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kasir-history-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel Keranjang & Pembayaran -->
+            <div class="cart-panel">
+                <div>
+                    <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Transaksi Aktif</h3>
+                    <div class="cart-items" id="cart-items">
+                        <p style="color:#888; text-align:center;">Belum ada menu dipilih</p>
+                    </div>
+
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <span>Total:</span>
+                        <span id="cart-total" style="color: var(--primary-blue);">Rp 0</span>
+                    </div>
+
+                    <!-- Metode Pembayaran -->
+                    <div class="payment-type">
+                        <label>
+                            <input type="radio" name="pay-method" value="CASH" checked onchange="toggleCashInput(true)">
+                            <span>CASH</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="pay-method" value="QRIS" onchange="toggleCashInput(false)">
+                            <span>QRIS</span>
+                        </label>
+                    </div>
+
+                    <!-- Kalkulator Cash -->
+                    <div class="calc-box" id="cash-calc-box">
+                        <label style="font-size: 12px; font-weight: bold; color: #555;">Uang Diterima (Rp):</label>
+                        <input type="number" id="cash-received" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc;" placeholder="0" oninput="calculateChange()">
+                        <div style="margin-top: 10px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between;">
+                            <span>Kembalian:</span>
+                            <span id="cash-change" style="color: #D32F2F;">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="processTransaction()">Selesaikan Transaksi</button>
+            </div>
+        </div>
+
+        <!-- 2. RUMAH MANAGER -->
+        <div id="rumah-manager" class="manager-layout hidden">
+            <h2 style="margin-bottom: 20px; color: var(--dark-blue);">Dashboard Control Manager</h2>
+
+            <!-- Filter & Export Bar -->
+            <div class="filter-bar">
+                <div>
+                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Dari Tanggal:</label>
+                    <input type="date" id="filter-start-date" onchange="updateManagerDashboard()">
+                </div>
+                <div>
+                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Sampai Tanggal:</label>
+                    <input type="date" id="filter-end-date" onchange="updateManagerDashboard()">
+                </div>
+                <div>
+                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Filter Menu:</label>
+                    <select id="filter-menu" onchange="updateManagerDashboard()">
+                        <option value="ALL">Semua Menu</option>
+                        <option value="C8">CONE 8K (C8)</option>
+                        <option value="C10">CONE 10K (C10)</option>
+                        <option value="S12">SUNDAE 12K (S12)</option>
+                        <option value="S13">SUNDAE 13K (S13)</option>
+                        <option value="S14">SUNDAE 14K (S14)</option>
+                        <option value="F15">FLOAT 15K (F15)</option>
+                        <option value="MINERAL">MINERAL</option>
+                    </select>
+                </div>
+                <button class="btn-export" onclick="exportToExcel()">Export Excel (XLS)</button>
+            </div>
+
+            <!-- Stats Widgets -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>TOTAL OMZET PERIODE</h3>
+                    <div class="value" id="stat-omzet">Rp 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>TOTAL TRANSAKSI</h3>
+                    <div class="value" id="stat-count">0 TRX</div>
+                </div>
+                <div class="stat-card">
+                    <h3>METODE CASH</h3>
+                    <div class="value" id="stat-cash">Rp 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>METODE QRIS</h3>
+                    <div class="value" id="stat-qris">Rp 0</div>
+                </div>
+            </div>
+
+            <!-- Tabel History Manager -->
+            <div class="table-container">
+                <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Detail Transaksi Filtered</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal & Waktu</th>
+                            <th>ID TRX</th>
+                            <th>ID Menu</th>
+                            <th>Nama Menu</th>
+                            <th>Harga Beli</th>
+                            <th>Metode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manager-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATA MASTER MENU
+        const MENU_LIST = [
+            { id: 'C8', name: 'CONE 8K', price: 8000 },
+            { id: 'C10', name: 'CONE 10K', price: 10000 },
+            { id: 'S12', name: 'SUNDAE 12K', price: 12000 },
+            { id: 'S13', name: 'SUNDAE 13K', price: 13000 },
+            { id: 'S14', name: 'SUNDAE 14K', price: 14000 },
+            { id: 'F15', name: 'FLOAT 15K', price: 15000 },
+            { id: 'MINERAL', name: 'MINERAL', price: 4000 }
+        ];
+
+        // STATE APLIKASI
+        let currentRole = null;
+        let selectedMenu = null;
+        let transactions = JSON.parse(localStorage.getItem('icbeku_transactions')) || [];
+
+        // INITIALIZE APP
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenuGrid();
+            setDefaultDates();
+        });
+
+        // 1. SISTEM LOGIN & NAVIGASI
+        function handleLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('pass-input').value;
+            
+            if (pin === '1234') {
+                currentRole = 'KASIR';
+                showApp();
+            } else if (pin === '1240') {
+                currentRole = 'MANAGER';
+                showApp();
+            } else {
+                alert('PIN Salah! Masukkan PIN Kasir (1234) atau Manager (1240).');
+                document.getElementById('pass-input').value = '';
+            }
+        }
+
+        function showApp() {
+            document.getElementById('page-login').classList.add('hidden');
+            document.getElementById('page-app').classList.remove('hidden');
+            document.getElementById('user-role').innerText = `(${currentRole})`;
+
+            if (currentRole === 'KASIR') {
+                document.getElementById('rumah-kasir').classList.remove('hidden');
+                document.getElementById('rumah-manager').classList.add('hidden');
+                renderKasirHistory();
+            } else if (currentRole === 'MANAGER') {
+                document.getElementById('rumah-manager').classList.remove('hidden');
+                document.getElementById('rumah-kasir').classList.add('hidden');
+                updateManagerDashboard();
+            }
+        }
+
+        function logout() {
+            currentRole = null;
+            document.getElementById('pass-input').value = '';
+            document.getElementById('page-app').classList.add('hidden');
+            document.getElementById('page-login').classList.remove('hidden');
+        }
+
+        // 2. LOGIKA RUMAH KASIR
+        function renderMenuGrid() {
+            const container = document.getElementById('menu-list');
+            container.innerHTML = MENU_LIST.map(item => `
+                <div class="menu-card" onclick="selectMenu('${item.id}')">
+                    <span class="badge">${item.id}</span>
+                    <h4>${item.name}</h4>
+                    <div class="price">Rp ${item.price.toLocaleString('id-ID')}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectMenu(menuId) {
+            selectedMenu = MENU_LIST.find(m => m.id === menuId);
+            const cartContainer = document.getElementById('cart-items');
+            
+            cartContainer.innerHTML = `
+                <div class="cart-item">
+                    <span><strong>[${selectedMenu.id}]</strong> ${selectedMenu.name}</span>
+                    <span>Rp ${selectedMenu.price.toLocaleString('id-ID')}</span>
+                </div>
+            `;
+            document.getElementById('cart-total').innerText = `Rp ${selectedMenu.price.toLocaleString('id-ID')}`;
+            calculateChange();
+        }
+
+        function toggleCashInput(isCash) {
+            const box = document.getElementById('cash-calc-box');
+            if (isCash) {
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function calculateChange() {
+            if (!selectedMenu) return;
+            const received = parseInt(document.getElementById('cash-received').value) || 0;
+            const change = received - selectedMenu.price;
+            const changeEl = document.getElementById('cash-change');
+            
+            if (change >= 0) {
+                changeEl.innerText = `Rp ${change.toLocaleString('id-ID')}`;
+                changeEl.style.color = '#2E7D32';
+            } else {
+                changeEl.innerText = `Kurang Rp ${Math.abs(change).toLocaleString('id-ID')}`;
+                changeEl.style.color = '#D32F2F';
+            }
+        }
+
+        function processTransaction() {
+            if (!selectedMenu) {
+                alert('Pilih menu terlebih dahulu!');
+                return;
+            }
+
+            const method = document.querySelector('input[name="pay-method"]:checked').value;
+            const received = parseInt(document.getElementById('cash-received').value) || 0;
+
+            if (method === 'CASH' && received < selectedMenu.price) {
+                alert('Uang tunai yang diterima kurang!');
+                return;
+            }
+
+            // Generate TRX ID & Record Data
+            const now = new Date();
+            const trxId = 'TRX-' + now.getTime().toString().slice(-6);
+            
+            const newTransaction = {
+                timestamp: now.toISOString(),
+                dateStr: now.toISOString().split('T')[0],
+                timeStr: now.toTimeString().split(' ')[0],
+                idTrx: trxId,
+                idMenu: selectedMenu.id,
+                menuName: selectedMenu.name,
+                price: selectedMenu.price,
+                paymentMethod: method
+            };
+
+            transactions.push(newTransaction);
+            localStorage.setItem('icbeku_transactions', JSON.stringify(transactions));
+
+            alert(`Transaksi Berhasil! (${trxId})`);
+
+            // Reset Form Kasir
+            selectedMenu = null;
+            document.getElementById('cart-items').innerHTML = `<p style="color:#888; text-align:center;">Belum ada menu dipilih</p>`;
+            document.getElementById('cart-total').innerText = `Rp 0`;
+            document.getElementById('cash-received').value = '';
+            document.getElementById('cash-change').innerText = `Rp 0`;
+            
+            renderKasirHistory();
+        }
+
+        function renderKasirHistory() {
+            const tbody = document.getElementById('kasir-history-body');
+            const recent = transactions.slice(-5).reverse(); // 5 Transaksi terakhir
+            
+            tbody.innerHTML = recent.map(t => `
+                <tr>
+                    <td>${t.timeStr}</td>
+                    <td><strong>${t.idTrx}</strong></td>
+                    <td>${t.idMenu}</td>
+                    <td>Rp ${t.price.toLocaleString('id-ID')}</td>
+                    <td><span style="font-weight:bold; color:${t.paymentMethod === 'QRIS' ? '#0288D1':'#2E7D32'}">${t.paymentMethod}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // 3. LOGIKA RUMAH MANAGER
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filter-start-date').value = today;
+            document.getElementById('filter-end-date').value = today;
+        }
+
+        function getFilteredData() {
+            const start = document.getElementById('filter-start-date').value;
+            const end = document.getElementById('filter-end-date').value;
+            const menu = document.getElementById('filter-menu').value;
+
+            return transactions.filter(t => {
+                const matchDate = t.dateStr >= start && t.dateStr <= end;
+                const matchMenu = menu === 'ALL' || t.idMenu === menu;
+                return matchDate && matchMenu;
+            });
+        }
+
+        function updateManagerDashboard() {
+            const data = getFilteredData();
+
+            // Hitung Stats
+            let totalOmzet = 0;
+            let totalCash = 0;
+            let totalQris = 0;
+
+            data.forEach(t => {
+                totalOmzet += t.price;
+                if (t.paymentMethod === 'CASH') totalCash += t.price;
+                if (t.paymentMethod === 'QRIS') totalQris += t.price;
+            });
+
+            document.getElementById('stat-omzet').innerText = `Rp ${totalOmzet.toLocaleString('id-ID')}`;
+            document.getElementById('stat-count').innerText = `${data.length} TRX`;
+            document.getElementById('stat-cash').innerText = `Rp ${totalCash.toLocaleString('id-ID')}`;
+            document.getElementById('stat-qris').innerText = `Rp ${totalQris.toLocaleString('id-ID')}`;
+
+            // Render Tabel Manager
+            const tbody = document.getElementById('manager-table-body');
+            tbody.innerHTML = data.map(t => `
+                <tr>
+                    <td>${t.dateStr} ${t.timeStr}</td>
+                    <td><strong>${t.idTrx}</strong></td>
+                    <td>${t.idMenu}</td>
+                    <td>${t.menuName}</td>
+                    <td>Rp ${t.price.toLocaleString('id-ID')}</td>
+                    <td><strong>${t.paymentMethod}</strong></td>
+                </tr>
+            `).join('');
+        }
+
+        // 4. EXPORT TO EXCEL (.XLS)
+        function exportToExcel() {
+            const data = getFilteredData();
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+
+            if (data.length === 0) {
+                alert('Tidak ada data transaksi pada periode ini untuk di-export.');
+                return;
+            }
+
+            // Header Sesuai Aturan Klien
+            let htmlTable = `
+                <table border="1">
+                    <thead>
+                        <tr style="background-color: #87CEEB; font-weight: bold;">
+                            <th>tanggal transaksi</th>
+                            <th>ID TRX</th>
+                            <th>ID MENU</th>
+                            <th>harga beli</th>
+                            <th>transaksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(t => {
+                htmlTable += `
+                    <tr>
+                        <td>${t.dateStr} ${t.timeStr}</td>
+                        <td>${t.idTrx}</td>
+                        <td>${t.idMenu}</td>
+                        <td>${t.price}</td>
+                        <td>${t.paymentMethod}</td>
+                    </tr>
+                `;
+            });
+
+            htmlTable += `</tbody></table>`;
+
+            // Download Blob File XLS
+            const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Penjualan_ICBEKU_${startDate}_to_${endDate}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
