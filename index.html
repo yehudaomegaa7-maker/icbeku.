@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ICBEKU - Point of Sale</title>
-    <!-- Chart.js untuk Grafik Dashboard -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --sky-blue: #87CEEB;
@@ -141,6 +139,7 @@
             cursor: pointer;
             transition: 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            user-select: none;
         }
 
         .menu-card:hover {
@@ -182,18 +181,36 @@
         }
 
         .cart-items {
-            max-height: 250px;
+            max-height: 280px;
             overflow-y: auto;
             margin-bottom: 15px;
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
 
-        .cart-item {
+        .cart-item-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            align-items: center;
+            margin-bottom: 10px;
             font-size: 14px;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-qty {
+            background: var(--soft-blue);
+            color: var(--dark-blue);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .calc-box {
@@ -267,6 +284,16 @@
             cursor: pointer;
             font-weight: bold;
             margin-left: auto;
+        }
+
+        .btn-reset {
+            background-color: #D32F2F;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         .stats-grid {
@@ -355,30 +382,14 @@
             <div>
                 <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Pilih Menu</h3>
                 <div class="menu-grid" id="menu-list"></div>
-
-                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--dark-blue);">Riwayat Transaksi Terakhir</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Waktu</th>
-                                <th>ID TRX</th>
-                                <th>ID Menu</th>
-                                <th>Harga</th>
-                                <th>Metode</th>
-                            </tr>
-                        </thead>
-                        <tbody id="kasir-history-body"></tbody>
-                    </table>
-                </div>
             </div>
 
             <!-- Panel Keranjang & Pembayaran -->
             <div class="cart-panel">
                 <div>
-                    <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Transaksi Aktif</h3>
+                    <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Keranjang Transaksi</h3>
                     <div class="cart-items" id="cart-items">
-                        <p style="color:#888; text-align:center;">Belum ada menu dipilih</p>
+                        <p style="color:#888; text-align:center;">Klik menu di sebelah kiri</p>
                     </div>
 
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between;">
@@ -417,7 +428,7 @@
         <div id="rumah-manager" class="manager-layout hidden">
             <h2 style="margin-bottom: 20px; color: var(--dark-blue);">Dashboard Control Manager</h2>
 
-            <!-- Filter & Export Bar -->
+            <!-- Filter, Export & Reset Bar -->
             <div class="filter-bar">
                 <div>
                     <label style="font-size: 12px; display: block; margin-bottom: 4px;">Dari Tanggal:</label>
@@ -441,6 +452,7 @@
                     </select>
                 </div>
                 <button class="btn-export" onclick="exportToExcel()">Export Excel (XLS)</button>
+                <button class="btn-reset" onclick="resetAllTransactions()">Reset Data Penjualan</button>
             </div>
 
             <!-- Stats Widgets -->
@@ -450,7 +462,7 @@
                     <div class="value" id="stat-omzet">Rp 0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>TOTAL TRANSAKSI</h3>
+                    <h3>TOTAL TRANSAKSI (TRX)</h3>
                     <div class="value" id="stat-count">0 TRX</div>
                 </div>
                 <div class="stat-card">
@@ -473,7 +485,9 @@
                             <th>ID TRX</th>
                             <th>ID Menu</th>
                             <th>Nama Menu</th>
-                            <th>Harga Beli</th>
+                            <th>Harga Satuan</th>
+                            <th>Qty</th>
+                            <th>Total</th>
                             <th>Metode</th>
                         </tr>
                     </thead>
@@ -497,7 +511,7 @@
 
         // STATE APLIKASI
         let currentRole = null;
-        let selectedMenu = null;
+        let cart = []; // Menampung banyak menu
         let transactions = JSON.parse(localStorage.getItem('icbeku_transactions')) || [];
 
         // INITIALIZE APP
@@ -531,7 +545,6 @@
             if (currentRole === 'KASIR') {
                 document.getElementById('rumah-kasir').classList.remove('hidden');
                 document.getElementById('rumah-manager').classList.add('hidden');
-                renderKasirHistory();
             } else if (currentRole === 'MANAGER') {
                 document.getElementById('rumah-manager').classList.remove('hidden');
                 document.getElementById('rumah-kasir').classList.add('hidden');
@@ -546,11 +559,11 @@
             document.getElementById('page-login').classList.remove('hidden');
         }
 
-        // 2. LOGIKA RUMAH KASIR
+        // 2. LOGIKA RUMAH KASIR (MULTI-ITEM CART)
         function renderMenuGrid() {
             const container = document.getElementById('menu-list');
             container.innerHTML = MENU_LIST.map(item => `
-                <div class="menu-card" onclick="selectMenu('${item.id}')">
+                <div class="menu-card" onclick="addToCart('${item.id}')">
                     <span class="badge">${item.id}</span>
                     <h4>${item.name}</h4>
                     <div class="price">Rp ${item.price.toLocaleString('id-ID')}</div>
@@ -558,35 +571,83 @@
             `).join('');
         }
 
-        function selectMenu(menuId) {
-            selectedMenu = MENU_LIST.find(m => m.id === menuId);
+        function addToCart(menuId) {
+            const menu = MENU_LIST.find(m => m.id === menuId);
+            const existingItem = cart.find(item => item.id === menuId);
+
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ ...menu, qty: 1 });
+            }
+            renderCart();
+        }
+
+        function updateQty(menuId, change) {
+            const item = cart.find(i => i.id === menuId);
+            if (item) {
+                item.qty += change;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== menuId);
+                }
+            }
+            renderCart();
+        }
+
+        function renderCart() {
             const cartContainer = document.getElementById('cart-items');
             
-            cartContainer.innerHTML = `
-                <div class="cart-item">
-                    <span><strong>[${selectedMenu.id}]</strong> ${selectedMenu.name}</span>
-                    <span>Rp ${selectedMenu.price.toLocaleString('id-ID')}</span>
-                </div>
-            `;
-            document.getElementById('cart-total').innerText = `Rp ${selectedMenu.price.toLocaleString('id-ID')}`;
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `<p style="color:#888; text-align:center;">Klik menu di sebelah kiri</p>`;
+                document.getElementById('cart-total').innerText = `Rp 0`;
+                calculateChange();
+                return;
+            }
+
+            let total = 0;
+            cartContainer.innerHTML = cart.map(item => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                return `
+                    <div class="cart-item-row">
+                        <div>
+                            <strong>[${item.id}]</strong> ${item.name}<br>
+                            <small style="color:#666;">@ Rp ${item.price.toLocaleString('id-ID')}</small>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="btn-qty" onclick="updateQty('${item.id}', -1)">-</button>
+                            <span>${item.qty}</span>
+                            <button class="btn-qty" onclick="updateQty('${item.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cart-total').innerText = `Rp ${total.toLocaleString('id-ID')}`;
             calculateChange();
+        }
+
+        function getCartTotal() {
+            return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
         }
 
         function toggleCashInput(isCash) {
             const box = document.getElementById('cash-calc-box');
-            if (isCash) {
-                box.style.display = 'block';
-            } else {
-                box.style.display = 'none';
-            }
+            box.style.display = isCash ? 'block' : 'none';
         }
 
         function calculateChange() {
-            if (!selectedMenu) return;
+            const total = getCartTotal();
             const received = parseInt(document.getElementById('cash-received').value) || 0;
-            const change = received - selectedMenu.price;
+            const change = received - total;
             const changeEl = document.getElementById('cash-change');
             
+            if (cart.length === 0) {
+                changeEl.innerText = `Rp 0`;
+                changeEl.style.color = '#D32F2F';
+                return;
+            }
+
             if (change >= 0) {
                 changeEl.innerText = `Rp ${change.toLocaleString('id-ID')}`;
                 changeEl.style.color = '#2E7D32';
@@ -597,20 +658,21 @@
         }
 
         function processTransaction() {
-            if (!selectedMenu) {
-                alert('Pilih menu terlebih dahulu!');
+            if (cart.length === 0) {
+                alert('Pilih minimal satu menu!');
                 return;
             }
 
+            const total = getCartTotal();
             const method = document.querySelector('input[name="pay-method"]:checked').value;
             const received = parseInt(document.getElementById('cash-received').value) || 0;
 
-            if (method === 'CASH' && received < selectedMenu.price) {
+            if (method === 'CASH' && received < total) {
                 alert('Uang tunai yang diterima kurang!');
                 return;
             }
 
-            // Generate TRX ID & Record Data
+            // Generate 1 ID TRX unik untuk semua item di keranjang ini
             const now = new Date();
             const trxId = 'TRX-' + now.getTime().toString().slice(-6);
             
@@ -619,9 +681,8 @@
                 dateStr: now.toISOString().split('T')[0],
                 timeStr: now.toTimeString().split(' ')[0],
                 idTrx: trxId,
-                idMenu: selectedMenu.id,
-                menuName: selectedMenu.name,
-                price: selectedMenu.price,
+                items: JSON.parse(JSON.stringify(cart)), // Menyimpan daftar menu yang dibeli
+                totalAmount: total,
                 paymentMethod: method
             };
 
@@ -631,28 +692,10 @@
             alert(`Transaksi Berhasil! (${trxId})`);
 
             // Reset Form Kasir
-            selectedMenu = null;
-            document.getElementById('cart-items').innerHTML = `<p style="color:#888; text-align:center;">Belum ada menu dipilih</p>`;
-            document.getElementById('cart-total').innerText = `Rp 0`;
+            cart = [];
+            renderCart();
             document.getElementById('cash-received').value = '';
             document.getElementById('cash-change').innerText = `Rp 0`;
-            
-            renderKasirHistory();
-        }
-
-        function renderKasirHistory() {
-            const tbody = document.getElementById('kasir-history-body');
-            const recent = transactions.slice(-5).reverse(); // 5 Transaksi terakhir
-            
-            tbody.innerHTML = recent.map(t => `
-                <tr>
-                    <td>${t.timeStr}</td>
-                    <td><strong>${t.idTrx}</strong></td>
-                    <td>${t.idMenu}</td>
-                    <td>Rp ${t.price.toLocaleString('id-ID')}</td>
-                    <td><span style="font-weight:bold; color:${t.paymentMethod === 'QRIS' ? '#0288D1':'#2E7D32'}">${t.paymentMethod}</span></td>
-                </tr>
-            `).join('');
         }
 
         // 3. LOGIKA RUMAH MANAGER
@@ -662,63 +705,65 @@
             document.getElementById('filter-end-date').value = today;
         }
 
-        function getFilteredData() {
+        function updateManagerDashboard() {
             const start = document.getElementById('filter-start-date').value;
             const end = document.getElementById('filter-end-date').value;
-            const menu = document.getElementById('filter-menu').value;
+            const menuFilter = document.getElementById('filter-menu').value;
 
-            return transactions.filter(t => {
-                const matchDate = t.dateStr >= start && t.dateStr <= end;
-                const matchMenu = menu === 'ALL' || t.idMenu === menu;
-                return matchDate && matchMenu;
-            });
-        }
+            let filteredTrx = transactions.filter(t => t.dateStr >= start && t.dateStr <= end);
 
-        function updateManagerDashboard() {
-            const data = getFilteredData();
-
-            // Hitung Stats
             let totalOmzet = 0;
             let totalCash = 0;
             let totalQris = 0;
 
-            data.forEach(t => {
-                totalOmzet += t.price;
-                if (t.paymentMethod === 'CASH') totalCash += t.price;
-                if (t.paymentMethod === 'QRIS') totalQris += t.price;
+            let tableRowsHtml = '';
+
+            filteredTrx.forEach(t => {
+                t.items.forEach(item => {
+                    if (menuFilter === 'ALL' || item.id === menuFilter) {
+                        const itemTotal = item.price * item.qty;
+                        totalOmzet += itemTotal;
+                        if (t.paymentMethod === 'CASH') totalCash += itemTotal;
+                        if (t.paymentMethod === 'QRIS') totalQris += itemTotal;
+
+                        tableRowsHtml += `
+                            <tr>
+                                <td>${t.dateStr} ${t.timeStr}</td>
+                                <td><strong>${t.idTrx}</strong></td>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>Rp ${item.price.toLocaleString('id-ID')}</td>
+                                <td>${item.qty}</td>
+                                <td>Rp ${itemTotal.toLocaleString('id-ID')}</td>
+                                <td><strong>${t.paymentMethod}</strong></td>
+                            </tr>
+                        `;
+                    }
+                });
             });
 
             document.getElementById('stat-omzet').innerText = `Rp ${totalOmzet.toLocaleString('id-ID')}`;
-            document.getElementById('stat-count').innerText = `${data.length} TRX`;
+            document.getElementById('stat-count').innerText = `${filteredTrx.length} TRX`;
             document.getElementById('stat-cash').innerText = `Rp ${totalCash.toLocaleString('id-ID')}`;
             document.getElementById('stat-qris').innerText = `Rp ${totalQris.toLocaleString('id-ID')}`;
 
-            // Render Tabel Manager
-            const tbody = document.getElementById('manager-table-body');
-            tbody.innerHTML = data.map(t => `
-                <tr>
-                    <td>${t.dateStr} ${t.timeStr}</td>
-                    <td><strong>${t.idTrx}</strong></td>
-                    <td>${t.idMenu}</td>
-                    <td>${t.menuName}</td>
-                    <td>Rp ${t.price.toLocaleString('id-ID')}</td>
-                    <td><strong>${t.paymentMethod}</strong></td>
-                </tr>
-            `).join('');
+            document.getElementById('manager-table-body').innerHTML = tableRowsHtml;
         }
 
         // 4. EXPORT TO EXCEL (.XLS)
         function exportToExcel() {
-            const data = getFilteredData();
-            const startDate = document.getElementById('filter-start-date').value;
-            const endDate = document.getElementById('filter-end-date').value;
+            const start = document.getElementById('filter-start-date').value;
+            const end = document.getElementById('filter-end-date').value;
+            const menuFilter = document.getElementById('filter-menu').value;
 
-            if (data.length === 0) {
+            let filteredTrx = transactions.filter(t => t.dateStr >= start && t.dateStr <= end);
+
+            if (filteredTrx.length === 0) {
                 alert('Tidak ada data transaksi pada periode ini untuk di-export.');
                 return;
             }
 
-            // Header Sesuai Aturan Klien
+            // Header Sesuai Format Klien
             let htmlTable = `
                 <table border="1">
                     <thead>
@@ -733,29 +778,48 @@
                     <tbody>
             `;
 
-            data.forEach(t => {
-                htmlTable += `
-                    <tr>
-                        <td>${t.dateStr} ${t.timeStr}</td>
-                        <td>${t.idTrx}</td>
-                        <td>${t.idMenu}</td>
-                        <td>${t.price}</td>
-                        <td>${t.paymentMethod}</td>
-                    </tr>
-                `;
+            filteredTrx.forEach(t => {
+                t.items.forEach(item => {
+                    if (menuFilter === 'ALL' || item.id === menuFilter) {
+                        // Jika 1 menu dipesan lebih dari 1 qty (misal 2x C8), 
+                        // maka akan diexport per baris menu sesuai qty-nya
+                        for (let i = 0; i < item.qty; i++) {
+                            htmlTable += `
+                                <tr>
+                                    <td>${t.dateStr} ${t.timeStr}</td>
+                                    <td>${t.idTrx}</td>
+                                    <td>${item.id}</td>
+                                    <td>${item.price}</td>
+                                    <td>${t.paymentMethod}</td>
+                                </tr>
+                            `;
+                        }
+                    }
+                });
             });
 
             htmlTable += `</tbody></table>`;
 
-            // Download Blob File XLS
             const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Penjualan_ICBEKU_${startDate}_to_${endDate}.xls`;
+            a.download = `Penjualan_ICBEKU_${start}_to_${end}.xls`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+        }
+
+        // 5. RESET DATA
+        function resetAllTransactions() {
+            if (confirm("Apakah Anda yakin ingin menghapus SELURUH riwayat transaksi?")) {
+                if (confirm("PERINGATAN: Tindakan ini tidak bisa dibatalkan! Hapus sekarang?")) {
+                    transactions = [];
+                    localStorage.removeItem('icbeku_transactions');
+                    updateManagerDashboard();
+                    alert("Seluruh riwayat transaksi berhasil di-reset ke 0.");
+                }
+            }
         }
     </script>
 </body>
