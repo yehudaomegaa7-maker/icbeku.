@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICBEKU - Point of Sale</title>
+    <title>ICBEKU - System Kasir</title>
     <style>
         :root {
-            --sky-blue: #87CEEB;
-            --soft-blue: #E0F7FA;
-            --primary-blue: #0288D1;
-            --dark-blue: #01579B;
-            --white: #FFFFFF;
-            --gray-bg: #F4F7F9;
-            --text-color: #333333;
+            --primary-blue: #0088cc;
+            --accent-yellow: #ffcc00;
+            --dark-gray: #333333;
+            --light-bg: #f4f7f6;
+            --white: #ffffff;
+            --danger: #e74c3c;
+            --success: #2ecc71;
         }
 
         * {
@@ -23,136 +23,102 @@
         }
 
         body {
-            background-color: var(--gray-bg);
-            color: var(--text-color);
-        }
-
-        /* --- CONTAINER LOGIN & DATE MODAL --- */
-        .login-container {
+            background-color: var(--light-bg);
+            color: var(--dark-gray);
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, var(--sky-blue), var(--soft-blue));
+            overflow: hidden;
         }
 
-        .login-card {
-            background: var(--white);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        .container {
+            display: flex;
             width: 100%;
-            max-width: 360px;
-            text-align: center;
+            height: 100%;
         }
 
-        .login-card h1 {
-            color: var(--primary-blue);
-            margin-bottom: 8px;
-            font-size: 28px;
+        .main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
         }
 
-        .login-card p {
-            color: #666;
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        .input-group {
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+            background-color: var(--white);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--sky-blue);
-            border-radius: 8px;
-            font-size: 16px;
-            text-align: center;
-            outline: none;
+        .header h1 {
+            color: var(--primary-blue);
+            font-size: 24px;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
         }
 
         .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
             background-color: var(--primary-blue);
             color: var(--white);
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            transition: 0.2s;
         }
 
-        .btn:hover {
-            background-color: var(--dark-blue);
+        .btn-primary:hover {
+            background-color: #006699;
         }
 
-        /* --- NAVIGATION HEADER --- */
-        header {
-            background-color: var(--white);
-            border-bottom: 3px solid var(--sky-blue);
-            padding: 15px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header .logo {
-            font-size: 22px;
-            font-weight: bold;
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-blue);
             color: var(--primary-blue);
         }
 
-        .btn-logout {
-            background: #FF5252;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+        .btn-outline.active, .btn-outline:hover {
+            background-color: var(--primary-blue);
+            color: var(--white);
         }
 
-        /* --- RUMAH KASIR --- */
-        .kasir-layout {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
         }
 
-        .date-banner {
-            background: #E1F5FE;
-            border-left: 4px solid var(--primary-blue);
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            color: var(--dark-blue);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .btn-danger:hover {
+            background-color: #c0392b;
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 15px;
+            margin-bottom: 20px;
         }
 
         .menu-card {
-            background: var(--white);
-            border: 2px solid var(--soft-blue);
-            border-radius: 12px;
-            padding: 20px 10px;
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 15px;
             text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
-            user-select: none;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
         }
 
         .menu-card:hover {
@@ -160,174 +126,109 @@
             transform: translateY(-2px);
         }
 
-        .menu-card h4 {
-            font-size: 14px;
-            color: #444;
-            margin-bottom: 5px;
-        }
-
-        .menu-card .badge {
-            display: inline-block;
-            background: var(--soft-blue);
-            color: var(--dark-blue);
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 4px;
+        .menu-card h3 {
+            font-size: 16px;
             margin-bottom: 8px;
-            font-weight: bold;
         }
 
         .menu-card .price {
-            font-size: 16px;
-            font-weight: bold;
             color: var(--primary-blue);
+            font-weight: bold;
+            font-size: 18px;
         }
 
-        .cart-panel {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        .sidebar {
+            width: 380px;
+            background-color: var(--white);
+            border-left: 1px solid #e0e0e0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .cart-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
         }
 
         .cart-items {
-            max-height: 280px;
+            flex: 1;
             overflow-y: auto;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+            padding: 20px;
         }
 
-        .cart-item-row {
+        .cart-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .cart-item-info h4 {
             font-size: 14px;
         }
 
-        .qty-controls {
+        .cart-item-info p {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .cart-item-controls {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .btn-qty {
-            background: var(--soft-blue);
-            color: var(--dark-blue);
-            border: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .calc-box {
-            background: var(--soft-blue);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .payment-type {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .payment-type label {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            background: #eee;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .payment-type input {
-            display: none;
-        }
-
-        .payment-type input:checked + span {
-            color: var(--primary-blue);
-        }
-
-        .payment-type label:has(input:checked) {
-            background: var(--sky-blue);
-            color: white;
-        }
-
-        /* --- RUMAH MANAGER --- */
-        .manager-layout {
-            padding: 24px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        .filter-bar {
-            background: var(--white);
-            padding: 16px;
-            border-radius: 12px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-
-        .filter-bar input, .filter-bar select {
-            padding: 8px 12px;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
             border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-
-        .btn-quick {
-            background: #E0E0E0;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            background: #fff;
             cursor: pointer;
             font-weight: bold;
-            font-size: 12px;
         }
 
-        .btn-quick:hover {
-            background: #D6D6D6;
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background-color: #fafafa;
         }
 
-        .btn-export {
-            background-color: #2E7D32;
-            color: white;
-            border: none;
-            padding: 9px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .summary-row.total {
             font-weight: bold;
-            margin-left: auto;
+            font-size: 20px;
+            color: var(--primary-blue);
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
         }
 
-        .btn-reset {
-            background-color: #D32F2F;
-            color: white;
-            border: none;
-            padding: 9px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .manager-dashboard {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 20px;
         }
 
         .stat-card {
@@ -347,32 +248,7 @@
         .stat-card .value {
             font-size: 22px;
             font-weight: bold;
-            color: var(--dark-blue);
-        }
-
-        .table-container {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background-color: var(--soft-blue);
-            color: var(--dark-blue);
+            color: var(--dark-gray);
         }
 
         .hidden {
@@ -381,318 +257,152 @@
     </style>
 </head>
 <body>
-
-    <!-- 1. HALAMAN LOGIN -->
-    <div id="page-login" class="login-container">
-        <div class="login-card">
-            <h1>ICBEKU</h1>
-            <p>Sistem Kasir & Manajemen</p>
-            <form onsubmit="handleLogin(event)">
-                <div class="input-group">
-                    <input type="password" id="pass-input" placeholder="Masukkan PIN Akses" maxlength="4" required autofocus>
+    <div class="container">
+        <div class="main-panel">
+            <div class="header">
+                <h1>ICBEKU POS</h1>
+                <div class="role-selector">
+                    <button class="btn btn-outline active" id="btn-kasir" onclick="switchRole('kasir')">Kasir</button>
+                    <button class="btn btn-outline" id="btn-manajer" onclick="switchRole('manajer')">Manajer</button>
                 </div>
-                <button type="submit" class="btn">Masuk</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 2. PEMILIHAN TANGGAL SHIFT KASIR (Tampil khusus Kasir setelah login) -->
-    <div id="page-date-select" class="login-container hidden">
-        <div class="login-card">
-            <h2 style="color: var(--primary-blue); margin-bottom: 10px;">Tanggal Operasional</h2>
-            <p>Konfirmasi tanggal shift sebelum membuka kasir:</p>
-            <div class="input-group">
-                <input type="date" id="kasir-shift-date" style="font-size: 16px; padding: 10px;">
-            </div>
-            <button class="btn" onclick="confirmShiftDate()">Buka Kasir & Mulai Shift</button>
-        </div>
-    </div>
-
-    <!-- 3. MAIN APP LAYOUT -->
-    <div id="page-app" class="hidden">
-        <header>
-            <div class="logo">ICBEKU <span id="user-role" style="font-size:14px; color:#666; font-weight:normal;"></span></div>
-            <button class="btn-logout" onclick="logout()">Keluar</button>
-        </header>
-
-        <!-- RUMAH KASIR -->
-        <div id="rumah-kasir" class="kasir-layout hidden">
-            <div>
-                <div class="date-banner">
-                    <span>📅 Tanggal Shift: <span id="active-shift-date"></span></span>
-                    <button onclick="showDateSelection()" style="background: white; border:1px solid #0288D1; color:#0288D1; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;">Ubah Tanggal</button>
-                </div>
-                <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Pilih Menu</h3>
-                <div class="menu-grid" id="menu-list"></div>
             </div>
 
-            <div class="cart-panel">
-                <div>
-                    <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Keranjang Transaksi</h3>
-                    <div class="cart-items" id="cart-items">
-                        <p style="color:#888; text-align:center;">Klik menu di sebelah kiri</p>
-                    </div>
+            <!-- TAMPILAN KASIR -->
+            <div id="kasir-view">
+                <h2>Daftar Menu</h2>
+                <div class="menu-grid" id="menu-container"></div>
+            </div>
 
-                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between;">
-                        <span>Total:</span>
-                        <span id="cart-total" style="color: var(--primary-blue);">Rp 0</span>
+            <!-- TAMPILAN MANAJER -->
+            <div id="manajer-view" class="manager-dashboard">
+                <h2>Dashboard Manajer</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>TOTAL OMSET</h3>
+                        <div class="value" id="stat-omset">Rp 0</div>
                     </div>
-
-                    <div class="payment-type">
-                        <label>
-                            <input type="radio" name="pay-method" value="CASH" checked onchange="toggleCashInput(true)">
-                            <span>CASH</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="pay-method" value="QRIS" onchange="toggleCashInput(false)">
-                            <span>QRIS</span>
-                        </label>
-                    </div>
-
-                    <div class="calc-box" id="cash-calc-box">
-                        <label style="font-size: 12px; font-weight: bold; color: #555;">Uang Diterima (Rp):</label>
-                        <input type="number" id="cash-received" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc;" placeholder="0" oninput="calculateChange()">
-                        <div style="margin-top: 10px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between;">
-                            <span>Kembalian:</span>
-                            <span id="cash-change" style="color: #D32F2F;">Rp 0</span>
-                        </div>
+                    <div class="stat-card">
+                        <h3>TOTAL TRANSAKSI</h3>
+                        <div class="value" id="stat-transaksi">0</div>
                     </div>
                 </div>
-
-                <button class="btn" onclick="processTransaction()">Selesaikan Transaksi</button>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-danger" onclick="resetData()">Reset Semua Transaksi</button>
+                </div>
             </div>
         </div>
 
-        <!-- RUMAH MANAGER -->
-        <div id="rumah-manager" class="manager-layout hidden">
-            <h2 style="margin-bottom: 20px; color: var(--dark-blue);">Dashboard Control Manager</h2>
-
-            <div class="filter-bar">
-                <div>
-                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Dari Tanggal:</label>
-                    <input type="date" id="filter-start-date" onchange="updateManagerDashboard()">
-                </div>
-                <div>
-                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Sampai Tanggal:</label>
-                    <input type="date" id="filter-end-date" onchange="updateManagerDashboard()">
-                </div>
-                <div>
-                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Pilihan Cepat:</label>
-                    <button class="btn-quick" onclick="setFilterToday()">Hari Ini</button>
-                    <button class="btn-quick" onclick="setFilterAll()">Semua Data</button>
-                </div>
-                <div>
-                    <label style="font-size: 12px; display: block; margin-bottom: 4px;">Filter Menu:</label>
-                    <select id="filter-menu" onchange="updateManagerDashboard()">
-                        <option value="ALL">Semua Menu</option>
-                        <option value="C8">CONE 8K (C8)</option>
-                        <option value="C10">CONE 10K (C10)</option>
-                        <option value="S12">SUNDAE 12K (S12)</option>
-                        <option value="S13">SUNDAE 13K (S13)</option>
-                        <option value="S14">SUNDAE 14K (S14)</option>
-                        <option value="F15">FLOAT 15K (F15)</option>
-                        <option value="MINERAL">MINERAL</option>
-                    </select>
-                </div>
-                <button class="btn-export" onclick="exportToExcel()">Export Excel (XLS)</button>
-                <button class="btn-reset" onclick="resetAllTransactions()">Reset Data Penjualan</button>
+        <!-- SIDEBAR KERANJANG (KASIR) -->
+        <div class="sidebar" id="sidebar-cart">
+            <div class="cart-header">
+                <h2>Pesanan Saat Ini</h2>
             </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>TOTAL OMZET PERIODE</h3>
-                    <div class="value" id="stat-omzet">Rp 0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>TOTAL TRANSAKSI (TRX)</h3>
-                    <div class="value" id="stat-count">0 TRX</div>
-                </div>
-                <div class="stat-card">
-                    <h3>METODE CASH</h3>
-                    <div class="value" id="stat-cash">Rp 0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>METODE QRIS</h3>
-                    <div class="value" id="stat-qris">Rp 0</div>
-                </div>
+            <div class="cart-items" id="cart-container">
+                <p style="text-align: center; color: #999; margin-top: 20px;">Keranjang kosong</p>
             </div>
-
-            <div class="table-container">
-                <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Detail Transaksi Filtered</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tanggal & Waktu</th>
-                            <th>ID TRX</th>
-                            <th>ID Menu</th>
-                            <th>Nama Menu</th>
-                            <th>Harga Satuan</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                            <th>Metode</th>
-                        </tr>
-                    </thead>
-                    <tbody id="manager-table-body"></tbody>
-                </table>
+            <div class="cart-footer">
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="cart-total">Rp 0</span>
+                </div>
+                <div class="payment-methods">
+                    <button class="btn btn-primary" style="width: 100%; grid-column: span 2;" onclick="processTransaction()">Bayar Sekarang</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
+    <!-- LOGIKA JAVASCRIPT & FIREBASE -->
+    <script type="module">
+        // 1. IMPORT FIREBASE SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // 2. KONFIGURASI FIREBASE (GANTI DENGAN KODE DARI FIREBASE CONSOLE ANDA)
+        const firebaseConfig = {
+            apiKey: "PASTE_API_KEY_ANDA_DI_SINI",
+            authDomain: "PASTE_PROJECT_ID_ANDA.firebaseapp.com",
+            databaseURL: "https://PASTE_PROJECT_ID_ANDA-default-rtdb.firebaseio.com",
+            projectId: "PASTE_PROJECT_ID_ANDA",
+            storageBucket: "PASTE_PROJECT_ID_ANDA.appspot.com",
+            messagingSenderId: "PASTE_SENDER_ID_ANDA",
+            appId: "PASTE_APP_ID_ANDA"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // DATA MENU
         const MENU_LIST = [
             { id: 'C8', name: 'CONE 8K', price: 8000 },
             { id: 'C10', name: 'CONE 10K', price: 10000 },
-            { id: 'S12', name: 'SUNDAE 12K', price: 12000 },
-            { id: 'S13', name: 'SUNDAE 13K', price: 13000 },
-            { id: 'S14', name: 'SUNDAE 14K', price: 14000 },
-            { id: 'F15', name: 'FLOAT 15K', price: 15000 },
-            { id: 'MINERAL', name: 'MINERAL', price: 4000 }
+            { id: 'S8', name: 'SUNDAE 8K', price: 8000 },
+            { id: 'S10', name: 'SUNDAE 10K', price: 10000 }
         ];
 
-        let currentRole = null;
-        let selectedShiftDate = null;
         let cart = [];
+        let transactions = JSON.parse(localStorage.getItem('icbeku_transactions')) || [];
 
-        function getStoredTransactions() {
-            return JSON.parse(localStorage.getItem('icbeku_transactions')) || [];
-        }
+        // SYNC KODE KE WINDOW (Agar fungsi tombol onclick HTML bisa membacanya)
+        window.switchRole = switchRole;
+        window.addToCart = addToCart;
+        window.updateQty = updateQty;
+        window.processTransaction = processTransaction;
+        window.resetData = resetData;
 
-        function saveTransactions(data) {
-            localStorage.setItem('icbeku_transactions', JSON.stringify(data));
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMenuGrid();
-            setDefaultShiftDate();
-        });
-
-        function getTodayString() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function setDefaultShiftDate() {
-            document.getElementById('kasir-shift-date').value = getTodayString();
-        }
-
-        // 1. SISTEM LOGIN & AKSI TANGGAL
-        function handleLogin(e) {
-            e.preventDefault();
-            const pin = document.getElementById('pass-input').value;
-            
-            if (pin === '1234') {
-                currentRole = 'KASIR';
-                showDateSelection();
-            } else if (pin === '1240') {
-                currentRole = 'MANAGER';
-                showApp();
-            } else {
-                alert('PIN Salah! Masukkan PIN Kasir (1234) atau Manager (1240).');
-                document.getElementById('pass-input').value = '';
-            }
-        }
-
-        function showDateSelection() {
-            document.getElementById('page-login').classList.add('hidden');
-            document.getElementById('page-app').classList.add('hidden');
-            document.getElementById('page-date-select').classList.remove('hidden');
-        }
-
-        function confirmShiftDate() {
-            const dateInput = document.getElementById('kasir-shift-date').value;
-            if (!dateInput) {
-                alert('Pilih tanggal operasional terlebih dahulu!');
-                return;
-            }
-            selectedShiftDate = dateInput;
-            document.getElementById('active-shift-date').innerText = selectedShiftDate;
-            document.getElementById('page-date-select').classList.add('hidden');
-            showApp();
-        }
-
-        function showApp() {
-            document.getElementById('page-login').classList.add('hidden');
-            document.getElementById('page-app').classList.remove('hidden');
-            document.getElementById('user-role').innerText = `(${currentRole})`;
-
-            if (currentRole === 'KASIR') {
-                document.getElementById('rumah-kasir').classList.remove('hidden');
-                document.getElementById('rumah-manager').classList.add('hidden');
-            } else if (currentRole === 'MANAGER') {
-                document.getElementById('rumah-manager').classList.remove('hidden');
-                document.getElementById('rumah-kasir').classList.add('hidden');
-                setFilterAll();
-            }
-        }
-
-        function logout() {
-            currentRole = null;
-            selectedShiftDate = null;
-            document.getElementById('pass-input').value = '';
-            document.getElementById('page-app').classList.add('hidden');
-            document.getElementById('page-date-select').classList.add('hidden');
-            document.getElementById('page-login').classList.remove('hidden');
-        }
-
-        // 2. LOGIKA KASIR
-        function renderMenuGrid() {
-            const container = document.getElementById('menu-list');
+        // Render Menu
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
             container.innerHTML = MENU_LIST.map(item => `
                 <div class="menu-card" onclick="addToCart('${item.id}')">
-                    <span class="badge">${item.id}</span>
-                    <h4>${item.name}</h4>
-                    <div class="price">Rp ${item.price.toLocaleString('id-ID')}</div>
+                    <h3>${item.name}</h3>
+                    <div class="price">Rp ${item.price.toLocaleString()}</div>
                 </div>
             `).join('');
         }
 
-        function addToCart(menuId) {
-            const menu = MENU_LIST.find(m => m.id === menuId);
-            const existingItem = cart.find(item => item.id === menuId);
-
-            if (existingItem) {
-                existingItem.qty += 1;
+        function addToCart(id) {
+            const item = MENU_LIST.find(m => m.id === id);
+            const exist = cart.find(c => c.id === id);
+            if (exist) {
+                exist.qty++;
             } else {
-                cart.push({ ...menu, qty: 1 });
+                cart.push({ ...item, qty: 1 });
             }
             renderCart();
         }
 
-        function updateQty(menuId, change) {
-            const item = cart.find(i => i.id === menuId);
-            if (item) {
-                item.qty += change;
-                if (item.qty <= 0) {
-                    cart = cart.filter(i => i.id !== menuId);
-                }
+        function updateQty(id, delta) {
+            const index = cart.findIndex(c => c.id === id);
+            if (index !== -1) {
+                cart[index].qty += delta;
+                if (cart[index].qty <= 0) cart.splice(index, 1);
             }
             renderCart();
         }
 
         function renderCart() {
-            const cartContainer = document.getElementById('cart-items');
-            
+            const container = document.getElementById('cart-container');
+            const totalEl = document.getElementById('cart-total');
+
             if (cart.length === 0) {
-                cartContainer.innerHTML = `<p style="color:#888; text-align:center;">Klik menu di sebelah kiri</p>`;
-                document.getElementById('cart-total').innerText = `Rp 0`;
-                calculateChange();
+                container.innerHTML = `<p style="text-align: center; color: #999; margin-top: 20px;">Keranjang kosong</p>`;
+                totalEl.innerText = 'Rp 0';
                 return;
             }
 
             let total = 0;
-            cartContainer.innerHTML = cart.map(item => {
-                const itemTotal = item.price * item.qty;
-                total += itemTotal;
+            container.innerHTML = cart.map(item => {
+                const subtotal = item.price * item.qty;
+                total += subtotal;
                 return `
-                    <div class="cart-item-row">
-                        <div>
-                            <strong>[${item.id}]</strong> ${item.name}<br>
-                            <small style="color:#666;">@ Rp ${item.price.toLocaleString('id-ID')}</small>
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <p>Rp ${item.price.toLocaleString()} x ${item.qty}</p>
                         </div>
-                        <div class="qty-controls">
+                        <div class="cart-item-controls">
                             <button class="btn-qty" onclick="updateQty('${item.id}', -1)">-</button>
                             <span>${item.qty}</span>
                             <button class="btn-qty" onclick="updateQty('${item.id}', 1)">+</button>
@@ -701,226 +411,79 @@
                 `;
             }).join('');
 
-            document.getElementById('cart-total').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-            calculateChange();
-        }
-
-        function getCartTotal() {
-            return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        }
-
-        function toggleCashInput(isCash) {
-            const box = document.getElementById('cash-calc-box');
-            box.style.display = isCash ? 'block' : 'none';
-        }
-
-        function calculateChange() {
-            const total = getCartTotal();
-            const received = parseInt(document.getElementById('cash-received').value) || 0;
-            const change = received - total;
-            const changeEl = document.getElementById('cash-change');
-            
-            if (cart.length === 0) {
-                changeEl.innerText = `Rp 0`;
-                changeEl.style.color = '#D32F2F';
-                return;
-            }
-
-            if (change >= 0) {
-                changeEl.innerText = `Rp ${change.toLocaleString('id-ID')}`;
-                changeEl.style.color = '#2E7D32';
-            } else {
-                changeEl.innerText = `Kurang Rp ${Math.abs(change).toLocaleString('id-ID')}`;
-                changeEl.style.color = '#D32F2F';
-            }
+            totalEl.innerText = `Rp ${total.toLocaleString()}`;
         }
 
         function processTransaction() {
-            if (cart.length === 0) {
-                alert('Pilih minimal satu menu!');
-                return;
-            }
+            if (cart.length === 0) return alert('Keranjang masih kosong!');
 
-            const total = getCartTotal();
-            const method = document.querySelector('input[name="pay-method"]:checked').value;
-            const received = parseInt(document.getElementById('cash-received').value) || 0;
-
-            if (method === 'CASH' && received < total) {
-                alert('Uang tunai yang diterima kurang!');
-                return;
-            }
-
-            const now = new Date();
-            const timeStr = now.toTimeString().split(' ')[0];
-            const trxId = 'TRX-' + now.getTime().toString().slice(-6);
-            
-            const newTransaction = {
-                timestamp: now.toISOString(),
-                dateStr: selectedShiftDate, // Menggunakan tanggal shift yang sudah dikonfirmasi
-                timeStr: timeStr,
-                idTrx: trxId,
-                items: JSON.parse(JSON.stringify(cart)),
-                totalAmount: total,
-                paymentMethod: method
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const newTx = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                items: cart,
+                total: total
             };
 
-            const transactions = getStoredTransactions();
-            transactions.push(newTransaction);
-            saveTransactions(transactions);
+            // 1. Simpan ke LocalStorage
+            transactions.push(newTx);
+            localStorage.setItem('icbeku_transactions', JSON.stringify(transactions));
 
-            alert(`Transaksi Berhasil! (${trxId})`);
+            // 2. Simpan Realtime ke Firebase Database
+            push(ref(db, 'transactions'), newTx)
+                .then(() => {
+                    alert('Transaksi Berhasil Tersimpan ke Firebase!');
+                })
+                .catch((err) => {
+                    console.error('Error Firebase:', err);
+                    alert('Transaksi tersimpan lokal (Gagal sync ke Firebase).');
+                });
 
             cart = [];
             renderCart();
-            document.getElementById('cash-received').value = '';
-            document.getElementById('cash-change').innerText = `Rp 0`;
-        }
-
-        // 3. LOGIKA MANAGER
-        function setFilterToday() {
-            const todayStr = getTodayString();
-            document.getElementById('filter-start-date').value = todayStr;
-            document.getElementById('filter-end-date').value = todayStr;
             updateManagerDashboard();
         }
 
-        function setFilterAll() {
-            document.getElementById('filter-start-date').value = '';
-            document.getElementById('filter-end-date').value = '';
-            updateManagerDashboard();
+        function switchRole(role) {
+            const kasirView = document.getElementById('kasir-view');
+            const manajerView = document.getElementById('manajer-view');
+            const sidebar = document.getElementById('sidebar-cart');
+            const btnKasir = document.getElementById('btn-kasir');
+            const btnManajer = document.getElementById('btn-manajer');
+
+            if (role === 'kasir') {
+                kasirView.classList.remove('hidden');
+                sidebar.classList.remove('hidden');
+                manajerView.style.display = 'none';
+                btnKasir.classList.add('active');
+                btnManajer.classList.remove('active');
+            } else {
+                kasirView.classList.add('hidden');
+                sidebar.classList.add('hidden');
+                manajerView.style.display = 'flex';
+                btnManajer.classList.add('active');
+                btnKasir.classList.remove('active');
+                updateManagerDashboard();
+            }
         }
 
         function updateManagerDashboard() {
-            const start = document.getElementById('filter-start-date').value;
-            const end = document.getElementById('filter-end-date').value;
-            const menuFilter = document.getElementById('filter-menu').value;
-
-            const transactions = getStoredTransactions();
-
-            let filteredTrx = transactions.filter(t => {
-                let matchDate = true;
-                if (start && end) {
-                    matchDate = t.dateStr >= start && t.dateStr <= end;
-                } else if (start) {
-                    matchDate = t.dateStr >= start;
-                } else if (end) {
-                    matchDate = t.dateStr <= end;
-                }
-                return matchDate;
-            });
-
-            let totalOmzet = 0;
-            let totalCash = 0;
-            let totalQris = 0;
-            let tableRowsHtml = '';
-
-            filteredTrx.forEach(t => {
-                t.items.forEach(item => {
-                    if (menuFilter === 'ALL' || item.id === menuFilter) {
-                        const itemTotal = item.price * item.qty;
-                        totalOmzet += itemTotal;
-                        if (t.paymentMethod === 'CASH') totalCash += itemTotal;
-                        if (t.paymentMethod === 'QRIS') totalQris += itemTotal;
-
-                        tableRowsHtml += `
-                            <tr>
-                                <td>${t.dateStr} ${t.timeStr}</td>
-                                <td><strong>${t.idTrx}</strong></td>
-                                <td>${item.id}</td>
-                                <td>${item.name}</td>
-                                <td>Rp ${item.price.toLocaleString('id-ID')}</td>
-                                <td>${item.qty}</td>
-                                <td>Rp ${itemTotal.toLocaleString('id-ID')}</td>
-                                <td><strong>${t.paymentMethod}</strong></td>
-                            </tr>
-                        `;
-                    }
-                });
-            });
-
-            document.getElementById('stat-omzet').innerText = `Rp ${totalOmzet.toLocaleString('id-ID')}`;
-            document.getElementById('stat-count').innerText = `${filteredTrx.length} TRX`;
-            document.getElementById('stat-cash').innerText = `Rp ${totalCash.toLocaleString('id-ID')}`;
-            document.getElementById('stat-qris').innerText = `Rp ${totalQris.toLocaleString('id-ID')}`;
-
-            document.getElementById('manager-table-body').innerHTML = tableRowsHtml || `<tr><td colspan="8" style="text-align:center; color:#888;">Belum ada data transaksi</td></tr>`;
+            const totalOmset = transactions.reduce((sum, t) => sum + t.total, 0);
+            document.getElementById('stat-omset').innerText = `Rp ${totalOmset.toLocaleString()}`;
+            document.getElementById('stat-transaksi').innerText = transactions.length;
         }
 
-        // 4. EXPORT TO EXCEL
-        function exportToExcel() {
-            const start = document.getElementById('filter-start-date').value;
-            const end = document.getElementById('filter-end-date').value;
-            const menuFilter = document.getElementById('filter-menu').value;
-
-            const transactions = getStoredTransactions();
-
-            let filteredTrx = transactions.filter(t => {
-                let matchDate = true;
-                if (start && end) {
-                    matchDate = t.dateStr >= start && t.dateStr <= end;
-                }
-                return matchDate;
-            });
-
-            if (filteredTrx.length === 0) {
-                alert('Tidak ada data transaksi pada periode ini untuk di-export.');
-                return;
-            }
-
-            let htmlTable = `
-                <table border="1">
-                    <thead>
-                        <tr style="background-color: #87CEEB; font-weight: bold;">
-                            <th>tanggal transaksi</th>
-                            <th>ID TRX</th>
-                            <th>ID MENU</th>
-                            <th>harga beli</th>
-                            <th>transaksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            filteredTrx.forEach(t => {
-                t.items.forEach(item => {
-                    if (menuFilter === 'ALL' || item.id === menuFilter) {
-                        for (let i = 0; i < item.qty; i++) {
-                            htmlTable += `
-                                <tr>
-                                    <td>${t.dateStr} ${t.timeStr}</td>
-                                    <td>${t.idTrx}</td>
-                                    <td>${item.id}</td>
-                                    <td>${item.price}</td>
-                                    <td>${t.paymentMethod}</td>
-                                </tr>
-                            `;
-                        }
-                    }
-                });
-            });
-
-            htmlTable += `</tbody></table>`;
-
-            const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Penjualan_ICBEKU_${start || 'ALL'}_to_${end || 'ALL'}.xls`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        // 5. RESET DATA
-        function resetAllTransactions() {
-            if (confirm("Apakah Anda yakin ingin menghapus SELURUH riwayat transaksi?")) {
-                if (confirm("PERINGATAN: Tindakan ini tidak bisa dibatalkan! Hapus sekarang?")) {
-                    localStorage.removeItem('icbeku_transactions');
-                    updateManagerDashboard();
-                    alert("Seluruh riwayat transaksi berhasil di-reset ke 0.");
-                }
+        function resetData() {
+            if (confirm("PERINGATAN: Hapus seluruh riwayat transaksi lokal?")) {
+                localStorage.removeItem('icbeku_transactions');
+                transactions = [];
+                updateManagerDashboard();
+                alert("Riwayat lokal berhasil dibersihkan.");
             }
         }
+
+        // Inisialisasi awal
+        renderMenu();
     </script>
 </body>
 </html>
