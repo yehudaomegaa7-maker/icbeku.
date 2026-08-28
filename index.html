@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ICBEKU - Sistem Kasir Online</title>
-    <!-- Chart.js CDN untuk Grafik Manajer -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS CDN untuk Export XLS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --bg-main: #f0f8ff;
@@ -53,7 +60,7 @@
             overflow-x: hidden;
         }
 
-        /* --- HALAMAN LOGIN --- */
+        /* --- LOGIN SCREEN --- */
         #login-screen {
             position: fixed;
             inset: 0;
@@ -109,7 +116,7 @@
         }
 
         .btn {
-            padding: 12px 20px;
+            padding: 10px 16px;
             border: none;
             border-radius: 10px;
             font-weight: 600;
@@ -118,30 +125,16 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            width: 100%;
-        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-secondary { background: var(--accent); color: var(--text-main); }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .btn-secondary {
-            background: var(--accent);
-            color: var(--text-main);
-        }
-
-        /* --- LAYOUT UTAMA --- */
+        /* --- MAIN LAYOUT --- */
         #app-screen {
             display: none;
             width: 100vw;
@@ -221,7 +214,7 @@
             overflow-y: auto;
         }
 
-        /* --- PANEL POS / KASIR --- */
+        /* --- POS AREA --- */
         .pos-layout {
             display: flex;
             gap: 24px;
@@ -277,7 +270,6 @@
             flex-direction: column;
             justify-content: space-between;
             box-shadow: 0 2px 5px var(--shadow);
-            position: relative;
         }
 
         .menu-card:hover {
@@ -296,18 +288,10 @@
             margin-bottom: 8px;
         }
 
-        .menu-card .title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+        .menu-card .title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .menu-card .price { font-weight: 700; color: var(--text-main); }
 
-        .menu-card .price {
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        /* KERANJANG */
+        /* CART AREA */
         .cart-section {
             width: 380px;
             background: var(--bg-card);
@@ -335,11 +319,7 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
 
         .btn-qty {
             width: 26px;
@@ -379,7 +359,7 @@
             margin-bottom: 12px;
         }
 
-        /* --- TABEL & DASBOR --- */
+        /* TABLES & DASHBOARD */
         .table-container {
             width: 100%;
             border-collapse: collapse;
@@ -396,19 +376,9 @@
             font-size: 13px;
         }
 
-        .table-container th {
-            background: var(--accent);
-            color: var(--text-main);
-            font-weight: 700;
-        }
+        .table-container th { background: var(--accent); color: var(--text-main); font-weight: 700; }
 
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
         .status-sukses { background: #dcfce7; color: #15803d; }
         .status-batal { background: #fee2e2; color: #b91c1c; }
 
@@ -426,22 +396,15 @@
             border: 1px solid var(--border);
         }
 
-        .stat-card h4 {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .stat-card .value {
-            font-size: 22px;
-            font-weight: 800;
-        }
+        .stat-card h4 { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .stat-card .value { font-size: 22px; font-weight: 800; }
 
         .filter-row {
             display: flex;
             gap: 12px;
             margin-bottom: 16px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .form-input {
@@ -479,11 +442,11 @@
             <h1>ICBEKU</h1>
             <p>Masukkan PIN Akses Sistem</p>
             <input type="password" id="pin-field" class="pin-input" maxlength="4" placeholder="••••" autofocus>
-            <button class="btn btn-primary" onclick="verifyPin()">Masuk Aplikasi</button>
+            <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="verifyPin()">Masuk Aplikasi</button>
         </div>
     </div>
 
-    <!-- Halaman UTAMA -->
+    <!-- HALAMAN UTAMA -->
     <div id="app-screen">
         <!-- NAVBAR -->
         <div class="navbar">
@@ -498,11 +461,10 @@
         <div class="main-container">
             <!-- SIDEBAR NAVIGASI -->
             <div class="sidebar-nav">
-                <!-- NAV KASIR -->
                 <button class="nav-btn active nav-kasir" onclick="showSubPage('pos')">🛒 Menu Kasir</button>
                 <button class="nav-btn nav-kasir" onclick="showSubPage('history')">📜 Riwayat Belanja</button>
 
-                <!-- NAV MANAGER (HIDDEN FOR KASIR) -->
+                <!-- MANAGER ONLY -->
                 <button class="nav-btn nav-manager" style="display:none;" onclick="showSubPage('dashboard')">📊 Dasbor Penjualan</button>
                 <button class="nav-btn nav-manager" style="display:none;" onclick="showSubPage('manager-history')">📋 Data Transaksi</button>
                 <button class="nav-btn nav-manager" style="display:none;" onclick="showSubPage('menu-manage')">⚙️ Kelola Menu</button>
@@ -511,10 +473,9 @@
             <!-- KONTEN UTAMA -->
             <div class="content-area">
                 
-                <!-- SUB-PAGE 1: MENU KASIR / POS -->
+                <!-- SUB-PAGE 1: POS -->
                 <div id="page-pos" class="sub-page">
                     <div class="pos-layout">
-                        <!-- MENUS -->
                         <div class="menu-section">
                             <div class="category-tabs" id="category-tabs">
                                 <button class="tab-btn active" onclick="filterCategory('ALL')">Semua</button>
@@ -583,7 +544,10 @@
 
                 <!-- SUB-PAGE 3: DASBOR MANAGER -->
                 <div id="page-dashboard" class="sub-page" style="display:none;">
-                    <h2>Dasbor Penjualan</h2>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>Dasbor Penjualan</h2>
+                        <button class="btn btn-secondary" onclick="syncDataFromFirebase()">🔄 Refresh Data</button>
+                    </div>
                     <br>
                     <div class="filter-row">
                         <label>Filter Tanggal:</label>
@@ -620,12 +584,17 @@
                     </div>
                 </div>
 
-                <!-- SUB-PAGE 4: DATA TRANSAKSI MANAGER & RESET -->
+                <!-- SUB-PAGE 4: DATA TRANSAKSI MANAGER, EXPORT XLS & RESET -->
                 <div id="page-manager-history" class="sub-page" style="display:none;">
-                    <h2>Kelola Data Transaksi</h2>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>Kelola Data Transaksi</h2>
+                        <button class="btn btn-secondary" onclick="syncDataFromFirebase()">🔄 Refresh Data</button>
+                    </div>
                     <br>
                     <div class="filter-row">
-                        <input type="date" id="reset-date-filter" class="form-input">
+                        <label>Tanggal Opsional:</label>
+                        <input type="date" id="manager-date-filter" class="form-input">
+                        <button class="btn btn-success" onclick="exportToXLS()">📊 Export Transaksi ke XLS</button>
                         <button class="btn btn-danger" onclick="resetTransactions('FILTER')">Reset Berdasarkan Tanggal</button>
                         <button class="btn btn-danger" style="margin-left:auto;" onclick="resetTransactions('ALL')">Reset Semua Data</button>
                     </div>
@@ -645,7 +614,7 @@
                     </table>
                 </div>
 
-                <!-- SUB-PAGE 5: KELOLA MENU (MANAGER) -->
+                <!-- SUB-PAGE 5: KELOLA MENU MANAGER -->
                 <div id="page-menu-manage" class="sub-page" style="display:none;">
                     <h2>Kelola Menu Kasir</h2>
                     <br>
@@ -686,14 +655,24 @@
         </div>
     </div>
 
-    <!-- SCRIPT UTAMA -->
     <script>
-        // CONFIG SCRIPT
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxT6kA4uyIEnObmRwL_dbUQ8EWtpHEQoBJKI9ZrfITN5BEeDE1zUo1IDY_KrfvF7rGMXw/exec";
-        
-        // MASTER DATA MENU INITIAL
+        // FIREBASE INITIALIZATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9rAa497mVujTNMnweCTNVdaGw10aJezw",
+            authDomain: "icbeku.firebaseapp.com",
+            databaseURL: "https://icbeku-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "icbeku",
+            storageBucket: "icbeku.firebasestorage.app",
+            messagingSenderId: "1084917596206",
+            appId: "1:1084917596206:web:61d61e39e60611eefd9fbf",
+            measurementId: "G-76TYTT8KJ0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // INITIAL DEFAULT MENUS
         const DEFAULT_MENUS = [
-            // C8
             { id: 'C8-1', cat: 'C8', name: 'Cokelat Celup', price: 8000 },
             { id: 'C8-2', cat: 'C8', name: 'Strawberry Celup', price: 8000 },
             { id: 'C8-3', cat: 'C8', name: 'Greentea Celup', price: 8000 },
@@ -703,7 +682,6 @@
             { id: 'C8-7', cat: 'C8', name: 'Oreo Tabur', price: 8000 },
             { id: 'C8-8', cat: 'C8', name: 'Ceres Tabur', price: 8000 },
             { id: 'C8-9', cat: 'C8', name: 'Caramel Tabur', price: 8000 },
-            // C10
             { id: 'C10-1', cat: 'C10', name: 'Cokelat Celup', price: 10000 },
             { id: 'C10-2', cat: 'C10', name: 'Strawberry Celup', price: 10000 },
             { id: 'C10-3', cat: 'C10', name: 'Greentea Celup', price: 10000 },
@@ -714,37 +692,31 @@
             { id: 'C10-8', cat: 'C10', name: 'Ceres Tabur', price: 10000 },
             { id: 'C10-9', cat: 'C10', name: 'Milo Tabur', price: 10000 },
             { id: 'C10-10', cat: 'C10', name: 'Caramel Tabur', price: 10000 },
-            // S12
             { id: 'S12-1', cat: 'S12', name: 'Sundae Strawberry', price: 12000 },
             { id: 'S12-2', cat: 'S12', name: 'Sundae Cokelat', price: 12000 },
             { id: 'S12-3', cat: 'S12', name: 'Sundae Manggo', price: 12000 },
             { id: 'S12-4', cat: 'S12', name: 'Sundae Kacang Cokelat', price: 12000 },
             { id: 'S12-5', cat: 'S12', name: 'Sundae Tiramisu', price: 12000 },
             { id: 'S12-6', cat: 'S12', name: 'Sundae Caramel', price: 12000 },
-            // S13
             { id: 'S13-1', cat: 'S13', name: 'Sundae Chococrumble', price: 13000 },
-            // S14
             { id: 'S14-1', cat: 'S14', name: 'Sundae Dua Toping', price: 14000 },
-            // FLOAT & OTHERS
             { id: 'FL-1', cat: 'Float & Lainnya', name: 'Coffe Float', price: 15000 },
             { id: 'FL-2', cat: 'Float & Lainnya', name: 'Mineral', price: 5000 },
             { id: 'FL-3', cat: 'Float & Lainnya', name: 'Extra Toping', price: 2000 }
         ];
 
-        // STATE APLIKASI
-        let currentRole = null; // 'STAFF' or 'MANAGER'
-        let menuData = JSON.parse(localStorage.getItem('icbeku_menus')) || DEFAULT_MENUS;
-        let transactionData = JSON.parse(localStorage.getItem('icbeku_trx')) || [];
+        // GLOBAL APP STATE
+        let currentRole = null;
+        let menuData = [];
+        let transactionData = [];
         let activeCart = [];
         let selectedPayType = 'CASH';
         let salesChartInstance = null;
 
-        // ENTER KEY ON PIN INPUT
         document.getElementById('pin-field').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') verifyPin();
         });
 
-        // VERIFIKASI PIN AKSED
         function verifyPin() {
             const inputPin = document.getElementById('pin-field').value;
             if (inputPin === '1234') {
@@ -764,7 +736,6 @@
             document.getElementById('app-screen').style.display = 'flex';
             document.getElementById('user-role-badge').innerText = currentRole;
 
-            // Atur Navigasi Sesuai Role
             const managerBtns = document.querySelectorAll('.nav-manager');
             if (currentRole === 'MANAGER') {
                 managerBtns.forEach(btn => btn.style.display = 'block');
@@ -774,8 +745,7 @@
                 showSubPage('pos');
             }
 
-            renderMenuGrid('ALL');
-            renderManageMenuTable();
+            syncDataFromFirebase();
         }
 
         function logout() {
@@ -785,7 +755,33 @@
             document.getElementById('login-screen').style.display = 'flex';
         }
 
-        // SUB-PAGE NAVIGATION
+        // REALTIME FIREBASE SYNC
+        function syncDataFromFirebase() {
+            db.ref('menus').on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) {
+                    menuData = Array.isArray(val) ? val : Object.values(val);
+                } else {
+                    menuData = DEFAULT_MENUS;
+                    db.ref('menus').set(DEFAULT_MENUS);
+                }
+                renderMenuGrid('ALL');
+                renderManageMenuTable();
+            });
+
+            db.ref('transactions').on('value', (snapshot) => {
+                const val = snapshot.val();
+                transactionData = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+                
+                const activePage = document.querySelector('.sub-page[style*="display: block"]');
+                if(activePage) {
+                    if (activePage.id === 'page-history') renderHistoryTable();
+                    if (activePage.id === 'page-dashboard') renderDashboard();
+                    if (activePage.id === 'page-manager-history') renderManagerHistoryTable();
+                }
+            });
+        }
+
         function showSubPage(pageId) {
             document.querySelectorAll('.sub-page').forEach(page => page.style.display = 'none');
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -799,12 +795,11 @@
             if (pageId === 'menu-manage') renderManageMenuTable();
         }
 
-        // TEMA DARKMODE
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
 
-        // --- MANAJEMEN MENU KASIR ---
+        // POS & CART
         function filterCategory(cat) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -815,9 +810,10 @@
             const container = document.getElementById('menu-grid-container');
             container.innerHTML = '';
 
-            const filtered = category === 'ALL' ? menuData : menuData.filter(m => m.cat === category);
+            const filtered = category === 'ALL' ? menuData : menuData.filter(m => m && m.cat === category);
 
             filtered.forEach(item => {
+                if(!item) return;
                 const card = document.createElement('div');
                 card.className = 'menu-card';
                 card.onclick = () => addToCart(item);
@@ -832,7 +828,6 @@
             });
         }
 
-        // --- KERANJANG & CHECKOUT ---
         function addToCart(item) {
             const exist = activeCart.find(i => i.id === item.id);
             if (exist) {
@@ -904,7 +899,6 @@
             const total = activeCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
             const cashVal = parseInt(document.getElementById('calc-cash-input').value.replace(/\D/g, '')) || 0;
             const change = cashVal - total;
-
             document.getElementById('calc-change-text').innerText = change >= 0 ? `Rp ${change.toLocaleString('id-ID')}` : 'Rp 0';
         }
 
@@ -920,26 +914,24 @@
 
             const trxId = 'TRX-' + Date.now().toString().slice(-6);
             const now = new Date();
-            const timeStr = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID');
+            const dateStr = now.toLocaleDateString('id-ID');
+            const timeOnly = now.toLocaleTimeString('id-ID');
+            const rawDate = now.toISOString().split('T')[0];
 
-            // Format Data Transaksi Baru
             const newTransactions = activeCart.map(item => ({
                 idTrx: trxId,
-                waktu: timeStr,
+                tanggal: dateStr,
+                jam: timeOnly,
                 idMenu: item.name,
                 cat: item.cat,
                 hargaBeli: item.price * item.qty,
                 status: 'SUKSES',
                 transaksi: selectedPayType,
-                rawDate: now.toISOString().split('T')[0]
+                rawDate: rawDate
             }));
 
-            // Save Local
-            transactionData.push(...newTransactions);
-            localStorage.setItem('icbeku_trx', JSON.stringify(transactionData));
-
-            // Kirim ke Google Sheets via Fetch
-            sendToGoogleSheets(newTransactions);
+            const updatedTrx = [...transactionData, ...newTransactions];
+            db.ref('transactions').set(updatedTrx);
 
             alert('Transaksi Berhasil!');
             activeCart = [];
@@ -947,34 +939,17 @@
             renderCart();
         }
 
-        function sendToGoogleSheets(items) {
-            const payload = items.map(i => ({
-                idMenu: i.idMenu,
-                waktu: i.waktu,
-                idTrx: i.idTrx,
-                hargaBeli: i.hargaBeli,
-                status: i.status,
-                transaksi: i.transaksi
-            }));
-
-            fetch(GOOGLE_SHEET_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).catch(err => console.error('Error Google Sheets:', err));
-        }
-
-        // --- RIWAYAT PEMBELIAN (KASIR) ---
+        // HISTORY KASIR
         function renderHistoryTable() {
             const tbody = document.getElementById('history-table-body');
             tbody.innerHTML = '';
 
             [...transactionData].reverse().forEach(t => {
+                if(!t) return;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><b>${t.idTrx}</b></td>
-                    <td>${t.waktu}</td>
+                    <td>${t.tanggal} ${t.jam}</td>
                     <td>${t.idMenu}</td>
                     <td>Rp ${t.hargaBeli.toLocaleString('id-ID')}</td>
                     <td>${t.transaksi}</td>
@@ -989,21 +964,20 @@
 
         function cancelTransaction(trxId, menuName) {
             if (confirm(`Batalkan pembelian ${menuName} (ID: ${trxId})?`)) {
-                const target = transactionData.find(t => t.idTrx === trxId && t.idMenu === menuName);
+                const target = transactionData.find(t => t && t.idTrx === trxId && t.idMenu === menuName);
                 if (target) {
                     target.status = 'BATAL';
-                    localStorage.setItem('icbeku_trx', JSON.stringify(transactionData));
-                    renderHistoryTable();
+                    db.ref('transactions').set(transactionData);
                 }
             }
         }
 
-        // --- DASBOR MANAGER ---
+        // DASBOR MANAGER
         function renderDashboard() {
             const dateVal = document.getElementById('dash-date-filter').value;
             const catVal = document.getElementById('dash-cat-filter').value;
 
-            let filtered = transactionData.filter(t => t.status === 'SUKSES');
+            let filtered = transactionData.filter(t => t && t.status === 'SUKSES');
 
             if (dateVal) filtered = filtered.filter(t => t.rawDate === dateVal);
             if (catVal !== 'ALL') filtered = filtered.filter(t => t.cat === catVal);
@@ -1033,23 +1007,21 @@
                         backgroundColor: ['#38bdf8', '#f59e0b']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        // --- RIWAYAT & RESET (MANAGER) ---
+        // MANAGER HISTORY & RESET
         function renderManagerHistoryTable() {
             const tbody = document.getElementById('manager-history-table-body');
             tbody.innerHTML = '';
 
             [...transactionData].reverse().forEach(t => {
+                if(!t) return;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><b>${t.idTrx}</b></td>
-                    <td>${t.waktu}</td>
+                    <td>${t.tanggal} ${t.jam}</td>
                     <td>${t.idMenu}</td>
                     <td>Rp ${t.hargaBeli.toLocaleString('id-ID')}</td>
                     <td><span class="status-badge ${t.status === 'SUKSES' ? 'status-sukses' : 'status-batal'}">${t.status}</span></td>
@@ -1062,29 +1034,59 @@
         function resetTransactions(mode) {
             if (mode === 'ALL') {
                 if (confirm('PERINGATAN MANAGER: Hapus SEMUA riwayat transaksi?')) {
-                    transactionData = [];
-                    localStorage.setItem('icbeku_trx', JSON.stringify(transactionData));
-                    renderManagerHistoryTable();
+                    db.ref('transactions').remove();
                     alert('Seluruh data transaksi berhasil di-reset.');
                 }
             } else {
-                const dateVal = document.getElementById('reset-date-filter').value;
+                const dateVal = document.getElementById('manager-date-filter').value;
                 if (!dateVal) return alert('Pilih tanggal yang ingin di-reset!');
                 if (confirm(`Hapus data transaksi tanggal ${dateVal}?`)) {
-                    transactionData = transactionData.filter(t => t.rawDate !== dateVal);
-                    localStorage.setItem('icbeku_trx', JSON.stringify(transactionData));
-                    renderManagerHistoryTable();
+                    const remaining = transactionData.filter(t => t && t.rawDate !== dateVal);
+                    db.ref('transactions').set(remaining);
                     alert(`Data tanggal ${dateVal} berhasil dibersihkan.`);
                 }
             }
         }
 
-        // --- KELOLA MENU (MANAGER) ---
+        // EXPORT TO XLS
+        function exportToXLS() {
+            const filterDate = document.getElementById('manager-date-filter').value;
+            let dataToExport = transactionData.filter(t => t);
+
+            if (filterDate) {
+                dataToExport = dataToExport.filter(t => t.rawDate === filterDate);
+            }
+
+            if (dataToExport.length === 0) {
+                return alert('Tidak ada data transaksi untuk di-export!');
+            }
+
+            const exportRows = dataToExport.map(t => ({
+                'ID MENU': t.idMenu,
+                'TANGGAL': t.tanggal,
+                'JAM': t.jam,
+                'ID TRX': t.idTrx,
+                'ID MENU ': t.idMenu,
+                'HARGA BELI': t.hargaBeli,
+                'STATUS': t.status,
+                'TRANSAKSI (CASH ATAU QRIS)': t.transaksi
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Penjualan");
+
+            const fileName = filterDate ? `Laporan_Penjualan_${filterDate}.xlsx` : `Laporan_Penjualan_Semua.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+        }
+
+        // MANAGE MENU
         function renderManageMenuTable() {
             const tbody = document.getElementById('manage-menu-table-body');
             tbody.innerHTML = '';
 
             menuData.forEach((m, idx) => {
+                if(!m) return;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><span class="code">${m.cat}</span></td>
@@ -1112,21 +1114,18 @@
                 price: price
             };
 
-            menuData.push(newObj);
-            localStorage.setItem('icbeku_menus', JSON.stringify(menuData));
+            const updatedMenus = [...menuData, newObj];
+            db.ref('menus').set(updatedMenus);
 
             document.getElementById('new-menu-name').value = '';
             document.getElementById('new-menu-price').value = '';
-
-            renderManageMenuTable();
             alert('Menu baru berhasil ditambahkan!');
         }
 
         function deleteMenu(index) {
             if (confirm(`Hapus menu ${menuData[index].name}?`)) {
                 menuData.splice(index, 1);
-                localStorage.setItem('icbeku_menus', JSON.stringify(menuData));
-                renderManageMenuTable();
+                db.ref('menus').set(menuData);
             }
         }
     </script>
