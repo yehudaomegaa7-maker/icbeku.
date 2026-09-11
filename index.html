@@ -133,6 +133,7 @@
         .btn-danger { background: var(--danger); color: #fff; }
         .btn-success { background: var(--success); color: #fff; }
         .btn-secondary { background: var(--accent); color: var(--text-main); }
+        .btn-secondary.active { background: var(--primary); color: #fff; }
 
         /* --- MAIN LAYOUT --- */
         #app-screen {
@@ -481,9 +482,9 @@
                                 <button class="tab-btn active" onclick="filterCategory('ALL')">Semua</button>
                                 <button class="tab-btn" onclick="filterCategory('C8')">Cone 8K</button>
                                 <button class="tab-btn" onclick="filterCategory('C10')">Cone 10K</button>
+                                <button class="tab-btn" onclick="filterCategory('S10')">Sundae 10K</button>
+                                <button class="tab-btn" onclick="filterCategory('S11')">Sundae 11K</button>
                                 <button class="tab-btn" onclick="filterCategory('S12')">Sundae 12K</button>
-                                <button class="tab-btn" onclick="filterCategory('S13')">Sundae 13K</button>
-                                <button class="tab-btn" onclick="filterCategory('S14')">Sundae 14K</button>
                                 <button class="tab-btn" onclick="filterCategory('Float & Lainnya')">Float & Lainnya</button>
                             </div>
                             <div class="menu-grid" id="menu-grid-container"></div>
@@ -507,7 +508,7 @@
                                     <button class="btn btn-secondary pay-type-btn" id="pay-qris" onclick="setPaymentType('QRIS')">QRIS</button>
                                 </div>
 
-                                <div class="calc-box">
+                                <div class="calc-box" id="cash-calc-wrapper">
                                     <label style="font-size:12px; color:var(--text-muted);">Uang Pembayaran (CASH):</label>
                                     <input type="text" id="calc-cash-input" class="calc-input" placeholder="Rp 0" oninput="handleCashInput(this)">
                                     <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:8px;">
@@ -531,7 +532,7 @@
                             <tr>
                                 <th>ID TRX</th>
                                 <th>WAKTU</th>
-                                <th>NAMA MENU</th>
+                                <th>DETAIL ITEM</th>
                                 <th>HARGA</th>
                                 <th>METODE</th>
                                 <th>STATUS</th>
@@ -557,9 +558,9 @@
                             <option value="ALL">Semua Kategori</option>
                             <option value="C8">C8</option>
                             <option value="C10">C10</option>
+                            <option value="S10">S10</option>
+                            <option value="S11">S11</option>
                             <option value="S12">S12</option>
-                            <option value="S13">S13</option>
-                            <option value="S14">S14</option>
                             <option value="Float & Lainnya">Float & Lainnya</option>
                         </select>
                     </div>
@@ -592,8 +593,10 @@
                     </div>
                     <br>
                     <div class="filter-row">
-                        <label>Tanggal Opsional:</label>
-                        <input type="date" id="manager-date-filter" class="form-input">
+                        <label>Dari Tanggal:</label>
+                        <input type="date" id="manager-date-from" class="form-input">
+                        <label>Sampai Tanggal:</label>
+                        <input type="date" id="manager-date-to" class="form-input">
                         <button class="btn btn-success" onclick="exportToXLS()">📊 Export Transaksi ke XLS</button>
                         <button class="btn btn-danger" onclick="resetTransactions('FILTER')">Reset Berdasarkan Tanggal</button>
                         <button class="btn btn-danger" style="margin-left:auto;" onclick="resetTransactions('ALL')">Reset Semua Data</button>
@@ -604,10 +607,11 @@
                             <tr>
                                 <th>ID TRX</th>
                                 <th>WAKTU</th>
-                                <th>ID MENU</th>
-                                <th>HARGA</th>
+                                <th>DETAIL MENU</th>
+                                <th>TOTAL HARGA</th>
+                                <th>METODE</th>
                                 <th>STATUS</th>
-                                <th>TRANSAKSI</th>
+                                <th>AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="manager-history-table-body"></tbody>
@@ -625,13 +629,13 @@
                             <select id="new-menu-cat" class="form-input">
                                 <option value="C8">C8 (Cone 8K)</option>
                                 <option value="C10">C10 (Cone 10K)</option>
+                                <option value="S10">S10 (Sundae 10K)</option>
+                                <option value="S11">S11 (Sundae 11K)</option>
                                 <option value="S12">S12 (Sundae 12K)</option>
-                                <option value="S13">S13 (Sundae 13K)</option>
-                                <option value="S14">S14 (Sundae 14K)</option>
                                 <option value="Float & Lainnya">Float & Lainnya</option>
                             </select>
                             <input type="text" id="new-menu-name" class="form-input" placeholder="Nama Menu (misal: Vanilla Deluxe)">
-                            <input type="number" id="new-menu-price" class="form-input" placeholder="Harga (misal: 8000)">
+                            <input type="number" id="new-menu-price" class="form-input" placeholder="Harga (misal: 10000)">
                             <button class="btn btn-primary" onclick="addNewMenu()">Simpan Menu</button>
                         </div>
                     </div>
@@ -671,7 +675,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // INITIAL DEFAULT MENUS
+        // INITIAL DEFAULT MENUS (Telah Disesuaikan)
         const DEFAULT_MENUS = [
             { id: 'C8-1', cat: 'C8', name: 'Cokelat Celup', price: 8000 },
             { id: 'C8-2', cat: 'C8', name: 'Strawberry Celup', price: 8000 },
@@ -692,14 +696,14 @@
             { id: 'C10-8', cat: 'C10', name: 'Ceres Tabur', price: 10000 },
             { id: 'C10-9', cat: 'C10', name: 'Milo Tabur', price: 10000 },
             { id: 'C10-10', cat: 'C10', name: 'Caramel Tabur', price: 10000 },
-            { id: 'S12-1', cat: 'S12', name: 'Sundae Strawberry', price: 12000 },
-            { id: 'S12-2', cat: 'S12', name: 'Sundae Cokelat', price: 12000 },
-            { id: 'S12-3', cat: 'S12', name: 'Sundae Manggo', price: 12000 },
-            { id: 'S12-4', cat: 'S12', name: 'Sundae Kacang Cokelat', price: 12000 },
-            { id: 'S12-5', cat: 'S12', name: 'Sundae Tiramisu', price: 12000 },
-            { id: 'S12-6', cat: 'S12', name: 'Sundae Caramel', price: 12000 },
-            { id: 'S13-1', cat: 'S13', name: 'Sundae Chococrumble', price: 13000 },
-            { id: 'S14-1', cat: 'S14', name: 'Sundae Dua Toping', price: 14000 },
+            { id: 'S10-1', cat: 'S10', name: 'Sundae Strawberry', price: 10000 },
+            { id: 'S10-2', cat: 'S10', name: 'Sundae Cokelat', price: 10000 },
+            { id: 'S10-3', cat: 'S10', name: 'Sundae Manggo', price: 10000 },
+            { id: 'S10-4', cat: 'S10', name: 'Sundae Kacang Cokelat', price: 10000 },
+            { id: 'S10-5', cat: 'S10', name: 'Sundae Tiramisu', price: 10000 },
+            { id: 'S10-6', cat: 'S10', name: 'Sundae Caramel', price: 10000 },
+            { id: 'S11-1', cat: 'S11', name: 'Sundae Chococrumble', price: 11000 },
+            { id: 'S12-1', cat: 'S12', name: 'Sundae Dua Toping', price: 12000 },
             { id: 'FL-1', cat: 'Float & Lainnya', name: 'Coffe Float', price: 15000 },
             { id: 'FL-2', cat: 'Float & Lainnya', name: 'Mineral', price: 5000 },
             { id: 'FL-3', cat: 'Float & Lainnya', name: 'Extra Toping', price: 2000 }
@@ -712,6 +716,7 @@
         let activeCart = [];
         let selectedPayType = 'CASH';
         let salesChartInstance = null;
+        let cashPaidAmount = 0;
 
         document.getElementById('pin-field').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') verifyPin();
@@ -771,7 +776,7 @@
 
             db.ref('transactions').on('value', (snapshot) => {
                 const val = snapshot.val();
-                transactionData = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+                transactionData = val ? Object.values(val) : [];
                 
                 const activePage = document.querySelector('.sub-page[style*="display: block"]');
                 if(activePage) {
@@ -829,9 +834,9 @@
         }
 
         function addToCart(item) {
-            const exist = activeCart.find(i => i.id === item.id);
-            if (exist) {
-                exist.qty++;
+            const existing = activeCart.find(c => c.id === item.id);
+            if (existing) {
+                existing.qty += 1;
             } else {
                 activeCart.push({ ...item, qty: 1 });
             }
@@ -839,10 +844,12 @@
         }
 
         function updateCartQty(id, delta) {
-            const index = activeCart.findIndex(i => i.id === id);
-            if (index !== -1) {
-                activeCart[index].qty += delta;
-                if (activeCart[index].qty <= 0) activeCart.splice(index, 1);
+            const item = activeCart.find(c => c.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    activeCart = activeCart.filter(c => c.id !== id);
+                }
             }
             renderCart();
         }
@@ -860,15 +867,15 @@
 
             let total = 0;
             activeCart.forEach(item => {
-                const subtotal = item.price * item.qty;
-                total += subtotal;
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
 
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
                     <div>
                         <div style="font-size:13px; font-weight:600;">${item.name}</div>
-                        <div style="font-size:11px; color:var(--text-muted);">Rp ${item.price.toLocaleString('id-ID')}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</div>
                     </div>
                     <div class="qty-controls">
                         <button class="btn-qty" onclick="updateCartQty('${item.id}', -1)">-</button>
@@ -885,215 +892,307 @@
 
         function setPaymentType(type) {
             selectedPayType = type;
-            document.getElementById('pay-cash').classList.toggle('active', type === 'CASH');
-            document.getElementById('pay-qris').classList.toggle('active', type === 'QRIS');
+            document.querySelectorAll('.pay-type-btn').forEach(btn => btn.classList.remove('active'));
+            if(type === 'CASH') {
+                document.getElementById('pay-cash').classList.add('active');
+                document.getElementById('cash-calc-wrapper').style.display = 'block';
+            } else {
+                document.getElementById('pay-qris').classList.add('active');
+                document.getElementById('cash-calc-wrapper').style.display = 'none';
+            }
         }
 
         function handleCashInput(input) {
-            let val = input.value.replace(/\D/g, '');
-            input.value = val ? parseInt(val).toLocaleString('id-ID') : '';
+            const val = input.value.replace(/\D/g, '');
+            cashPaidAmount = parseInt(val) || 0;
+            input.value = 'Rp ' + cashPaidAmount.toLocaleString('id-ID');
             calculateChange();
         }
 
         function calculateChange() {
-            const total = activeCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-            const cashVal = parseInt(document.getElementById('calc-cash-input').value.replace(/\D/g, '')) || 0;
-            const change = cashVal - total;
-            document.getElementById('calc-change-text').innerText = change >= 0 ? `Rp ${change.toLocaleString('id-ID')}` : 'Rp 0';
+            const total = activeCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const change = cashPaidAmount - total;
+            const changeText = document.getElementById('calc-change-text');
+            if (change >= 0) {
+                changeText.innerText = 'Rp ' + change.toLocaleString('id-ID');
+                changeText.style.color = 'var(--text-main)';
+            } else {
+                changeText.innerText = 'Kurang Rp ' + Math.abs(change).toLocaleString('id-ID');
+                changeText.style.color = 'var(--danger)';
+            }
         }
 
         function processCheckout() {
-            if (activeCart.length === 0) return alert('Keranjang belanja kosong!');
-
-            const total = activeCart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-            const cashVal = parseInt(document.getElementById('calc-cash-input').value.replace(/\D/g, '')) || 0;
-
-            if (selectedPayType === 'CASH' && cashVal < total) {
-                return alert('Uang pembayaran CASH kurang!');
+            if (activeCart.length === 0) {
+                alert('Keranjang belanja kosong!');
+                return;
             }
 
-            const trxId = 'TRX-' + Date.now().toString().slice(-6);
+            const total = activeCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            if (selectedPayType === 'CASH' && cashPaidAmount < total) {
+                alert('Uang pembayaran kurang!');
+                return;
+            }
+
             const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID');
-            const timeOnly = now.toLocaleTimeString('id-ID');
-            const rawDate = now.toISOString().split('T')[0];
+            const trxId = 'TRX-' + Date.now();
+            const newTrx = {
+                id: trxId,
+                timestamp: now.toISOString(),
+                date: now.toISOString().split('T')[0],
+                time: now.toTimeString().split(' ')[0],
+                items: activeCart,
+                total: total,
+                method: selectedPayType,
+                status: 'SUKSES'
+            };
 
-            const newTransactions = activeCart.map(item => ({
-                idTrx: trxId,
-                tanggal: dateStr,
-                jam: timeOnly,
-                idMenu: item.name,
-                cat: item.cat,
-                hargaBeli: item.price * item.qty,
-                status: 'SUKSES',
-                transaksi: selectedPayType,
-                rawDate: rawDate
-            }));
-
-            const updatedTrx = [...transactionData, ...newTransactions];
-            db.ref('transactions').set(updatedTrx);
-
-            alert('Transaksi Berhasil!');
-            activeCart = [];
-            document.getElementById('calc-cash-input').value = '';
-            renderCart();
+            db.ref('transactions/' + trxId).set(newTrx, (err) => {
+                if (err) {
+                    alert('Gagal memproses transaksi: ' + err.message);
+                } else {
+                    alert('Transaksi Berhasil Ditambahkan!');
+                    activeCart = [];
+                    cashPaidAmount = 0;
+                    document.getElementById('calc-cash-input').value = '';
+                    renderCart();
+                }
+            });
         }
 
-        // HISTORY KASIR
+        // RIWAYAT KASIR
         function renderHistoryTable() {
             const tbody = document.getElementById('history-table-body');
             tbody.innerHTML = '';
 
-            [...transactionData].reverse().forEach(t => {
-                if(!t) return;
+            const sorted = [...transactionData].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            sorted.forEach(t => {
+                const itemSummary = t.items ? t.items.map(i => `${i.name} (x${i.qty})`).join(', ') : '-';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><b>${t.idTrx}</b></td>
-                    <td>${t.tanggal} ${t.jam}</td>
-                    <td>${t.idMenu}</td>
-                    <td>Rp ${t.hargaBeli.toLocaleString('id-ID')}</td>
-                    <td>${t.transaksi}</td>
+                    <td><b>${t.id}</b></td>
+                    <td>${t.date} ${t.time}</td>
+                    <td>${itemSummary}</td>
+                    <td>Rp ${t.total.toLocaleString('id-ID')}</td>
+                    <td><b>${t.method}</b></td>
                     <td><span class="status-badge ${t.status === 'SUKSES' ? 'status-sukses' : 'status-batal'}">${t.status}</span></td>
                     <td>
-                        ${t.status === 'SUKSES' ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="cancelTransaction('${t.idTrx}', '${t.idMenu}')">Batalkan</button>` : '-'}
+                        ${t.status === 'SUKSES' ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="voidTransaction('${t.id}')">Batalkan</button>` : '-'}
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function cancelTransaction(trxId, menuName) {
-            if (confirm(`Batalkan pembelian ${menuName} (ID: ${trxId})?`)) {
-                const target = transactionData.find(t => t && t.idTrx === trxId && t.idMenu === menuName);
-                if (target) {
-                    target.status = 'BATAL';
-                    db.ref('transactions').set(transactionData);
-                }
+        function voidTransaction(id) {
+            if (confirm(`Apakah Anda yakin ingin membatalkan transaksi ${id}?`)) {
+                db.ref(`transactions/${id}/status`).set('BATAL');
             }
         }
 
         // DASBOR MANAGER
         function renderDashboard() {
-            const dateVal = document.getElementById('dash-date-filter').value;
-            const catVal = document.getElementById('dash-cat-filter').value;
+            const dateFilter = document.getElementById('dash-date-filter').value;
+            const catFilter = document.getElementById('dash-cat-filter').value;
 
-            let filtered = transactionData.filter(t => t && t.status === 'SUKSES');
+            let filtered = transactionData.filter(t => t.status === 'SUKSES');
 
-            if (dateVal) filtered = filtered.filter(t => t.rawDate === dateVal);
-            if (catVal !== 'ALL') filtered = filtered.filter(t => t.cat === catVal);
+            if (dateFilter) {
+                filtered = filtered.filter(t => t.date === dateFilter);
+            }
 
-            const totalOmzet = filtered.reduce((s, t) => s + t.hargaBeli, 0);
-            const totalCash = filtered.filter(t => t.transaksi === 'CASH').reduce((s, t) => s + t.hargaBeli, 0);
-            const totalQris = filtered.filter(t => t.transaksi === 'QRIS').reduce((s, t) => s + t.hargaBeli, 0);
+            let omzet = 0;
+            let cash = 0;
+            let qris = 0;
 
-            document.getElementById('stat-omzet').innerText = `Rp ${totalOmzet.toLocaleString('id-ID')}`;
-            document.getElementById('stat-cash').innerText = `Rp ${totalCash.toLocaleString('id-ID')}`;
-            document.getElementById('stat-qris').innerText = `Rp ${totalQris.toLocaleString('id-ID')}`;
+            filtered.forEach(t => {
+                let validTotal = 0;
+                if(t.items) {
+                    t.items.forEach(i => {
+                        if(catFilter === 'ALL' || i.cat === catFilter) {
+                            validTotal += (i.price * i.qty);
+                        }
+                    });
+                }
+                
+                omzet += validTotal;
+                if (t.method === 'CASH') cash += validTotal;
+                if (t.method === 'QRIS') qris += validTotal;
+            });
 
-            renderChart(totalCash, totalQris);
+            document.getElementById('stat-omzet').innerText = `Rp ${omzet.toLocaleString('id-ID')}`;
+            document.getElementById('stat-cash').innerText = `Rp ${cash.toLocaleString('id-ID')}`;
+            document.getElementById('stat-qris').innerText = `Rp ${qris.toLocaleString('id-ID')}`;
+
+            renderChart(filtered);
         }
 
-        function renderChart(cash, qris) {
+        function renderChart(transactions) {
             const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            const hourlyData = {};
+            transactions.forEach(t => {
+                const hour = t.time ? t.time.substring(0, 2) + ':00' : '00:00';
+                hourlyData[hour] = (hourlyData[hour] || 0) + t.total;
+            });
+
+            const labels = Object.keys(hourlyData).sort();
+            const data = labels.map(l => hourlyData[l]);
+
             if (salesChartInstance) salesChartInstance.destroy();
 
             salesChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['CASH', 'QRIS'],
+                    labels: labels.length ? labels : ['Tidak Ada Data'],
                     datasets: [{
-                        label: 'Total Penjualan (Rp)',
-                        data: [cash, qris],
-                        backgroundColor: ['#38bdf8', '#f59e0b']
+                        label: 'Penjualan (Rp)',
+                        data: data.length ? data : [0],
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 6
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
             });
         }
 
-        // MANAGER HISTORY & RESET
+        // MANAGER HISTORY, EXPORT & RESET
         function renderManagerHistoryTable() {
             const tbody = document.getElementById('manager-history-table-body');
             tbody.innerHTML = '';
 
-            [...transactionData].reverse().forEach(t => {
-                if(!t) return;
+            const dateFrom = document.getElementById('manager-date-from').value;
+            const dateTo = document.getElementById('manager-date-to').value;
+            
+            let filtered = [...transactionData];
+
+            if (dateFrom) {
+                filtered = filtered.filter(t => t.date >= dateFrom);
+            }
+            if (dateTo) {
+                filtered = filtered.filter(t => t.date <= dateTo);
+            }
+
+            filtered.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(t => {
+                const itemSummary = t.items ? t.items.map(i => `${i.name} (x${i.qty})`).join(', ') : '-';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><b>${t.idTrx}</b></td>
-                    <td>${t.tanggal} ${t.jam}</td>
-                    <td>${t.idMenu}</td>
-                    <td>Rp ${t.hargaBeli.toLocaleString('id-ID')}</td>
+                    <td><b>${t.id}</b></td>
+                    <td>${t.date} ${t.time}</td>
+                    <td>${itemSummary}</td>
+                    <td>Rp ${t.total.toLocaleString('id-ID')}</td>
+                    <td><b>${t.method}</b></td>
                     <td><span class="status-badge ${t.status === 'SUKSES' ? 'status-sukses' : 'status-batal'}">${t.status}</span></td>
-                    <td>${t.transaksi}</td>
+                    <td>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteTransaction('${t.id}')">Hapus</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function resetTransactions(mode) {
-            if (mode === 'ALL') {
-                if (confirm('PERINGATAN MANAGER: Hapus SEMUA riwayat transaksi?')) {
-                    db.ref('transactions').remove();
-                    alert('Seluruh data transaksi berhasil di-reset.');
-                }
-            } else {
-                const dateVal = document.getElementById('manager-date-filter').value;
-                if (!dateVal) return alert('Pilih tanggal yang ingin di-reset!');
-                if (confirm(`Hapus data transaksi tanggal ${dateVal}?`)) {
-                    const remaining = transactionData.filter(t => t && t.rawDate !== dateVal);
-                    db.ref('transactions').set(remaining);
-                    alert(`Data tanggal ${dateVal} berhasil dibersihkan.`);
-                }
+        function deleteTransaction(id) {
+            if (confirm(`Hapus permanen transaksi ${id}?`)) {
+                db.ref(`transactions/${id}`).remove();
             }
         }
 
-        // EXPORT TO XLS
+        // EXPORT XLS DENGAN FILTER RENTANG TANGGAL
         function exportToXLS() {
-            const filterDate = document.getElementById('manager-date-filter').value;
-            let dataToExport = transactionData.filter(t => t);
-
-            if (filterDate) {
-                dataToExport = dataToExport.filter(t => t.rawDate === filterDate);
+            if (transactionData.length === 0) {
+                alert('Tidak ada data transaksi untuk diexport!');
+                return;
             }
 
-            if (dataToExport.length === 0) {
-                return alert('Tidak ada data transaksi untuk di-export!');
+            const dateFrom = document.getElementById('manager-date-from').value;
+            const dateTo = document.getElementById('manager-date-to').value;
+
+            let filtered = [...transactionData];
+
+            if (dateFrom) {
+                filtered = filtered.filter(t => t.date >= dateFrom);
+            }
+            if (dateTo) {
+                filtered = filtered.filter(t => t.date <= dateTo);
             }
 
-            const exportRows = dataToExport.map(t => ({
-                'ID MENU': t.idMenu,
-                'TANGGAL': t.tanggal,
-                'JAM': t.jam,
-                'ID TRX': t.idTrx,
-                'ID MENU ': t.idMenu,
-                'HARGA BELI': t.hargaBeli,
-                'STATUS': t.status,
-                'TRANSAKSI (CASH ATAU QRIS)': t.transaksi
+            if (filtered.length === 0) {
+                alert('Tidak ada data transaksi pada rentang tanggal yang dipilih!');
+                return;
+            }
+
+            const exportData = filtered.map(t => ({
+                ID_Transaksi: t.id,
+                Tanggal: t.date,
+                Waktu: t.time,
+                Items: t.items ? t.items.map(i => `${i.name} (${i.qty})`).join('; ') : '',
+                Total: t.total,
+                Metode_Pembayaran: t.method,
+                Status: t.status
             }));
 
-            const worksheet = XLSX.utils.json_to_sheet(exportRows);
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Penjualan");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Transaksi");
 
-            const fileName = filterDate ? `Laporan_Penjualan_${filterDate}.xlsx` : `Laporan_Penjualan_Semua.xlsx`;
-            XLSX.writeFile(workbook, fileName);
+            let filename = `Laporan_Penjualan_ICBEKU`;
+            if (dateFrom || dateTo) {
+                filename += `_${dateFrom || 'awal'}_sd_${dateTo || 'akhir'}`;
+            } else {
+                filename += `_${new Date().toISOString().split('T')[0]}`;
+            }
+            filename += `.xlsx`;
+
+            XLSX.writeFile(workbook, filename);
         }
 
-        // MANAGE MENU
+        function resetTransactions(type) {
+            if (type === 'ALL') {
+                if (confirm('PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA DATA TRANSAKSI? Data tidak dapat dikembalikan.')) {
+                    db.ref('transactions').remove();
+                }
+            } else if (type === 'FILTER') {
+                const dateFrom = document.getElementById('manager-date-from').value;
+                const dateTo = document.getElementById('manager-date-to').value;
+
+                if (!dateFrom && !dateTo) {
+                    alert('Pilih minimal satu rentang tanggal (Dari Tanggal / Sampai Tanggal) terlebih dahulu!');
+                    return;
+                }
+
+                if (confirm(`Apakah Anda yakin ingin menghapus transaksi sesuai rentang tanggal yang dipilih?`)) {
+                    transactionData.forEach(t => {
+                        let matches = true;
+                        if (dateFrom && t.date < dateFrom) matches = false;
+                        if (dateTo && t.date > dateTo) matches = false;
+
+                        if (matches) {
+                            db.ref(`transactions/${t.id}`).remove();
+                        }
+                    });
+                }
+            }
+        }
+
+        // KELOLA MENU
         function renderManageMenuTable() {
             const tbody = document.getElementById('manage-menu-table-body');
             tbody.innerHTML = '';
 
-            menuData.forEach((m, idx) => {
-                if(!m) return;
+            menuData.forEach((item, index) => {
+                if(!item) return;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><span class="code">${m.cat}</span></td>
-                    <td>${m.name}</td>
-                    <td>Rp ${m.price.toLocaleString('id-ID')}</td>
+                    <td><span class="code">${item.cat}</span></td>
+                    <td><b>${item.name}</b></td>
+                    <td>Rp ${item.price.toLocaleString('id-ID')}</td>
                     <td>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteMenu(${idx})">Hapus</button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteMenu('${item.id || index}')">Hapus</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1105,26 +1204,27 @@
             const name = document.getElementById('new-menu-name').value.trim();
             const price = parseInt(document.getElementById('new-menu-price').value);
 
-            if (!name || isNaN(price)) return alert('Lengkapi nama dan harga menu!');
+            if (!name || isNaN(price)) {
+                alert('Isi nama menu dan harga dengan benar!');
+                return;
+            }
 
-            const newObj = {
-                id: 'M-' + Date.now(),
-                cat: cat,
-                name: name,
-                price: price
-            };
-
-            const updatedMenus = [...menuData, newObj];
-            db.ref('menus').set(updatedMenus);
-
-            document.getElementById('new-menu-name').value = '';
-            document.getElementById('new-menu-price').value = '';
-            alert('Menu baru berhasil ditambahkan!');
+            const newId = `${cat}-${Date.now()}`;
+            const newItem = { id: newId, cat, name, price };
+            
+            menuData.push(newItem);
+            db.ref('menus').set(menuData, (err) => {
+                if(!err) {
+                    alert('Menu baru berhasil ditambahkan!');
+                    document.getElementById('new-menu-name').value = '';
+                    document.getElementById('new-menu-price').value = '';
+                }
+            });
         }
 
-        function deleteMenu(index) {
-            if (confirm(`Hapus menu ${menuData[index].name}?`)) {
-                menuData.splice(index, 1);
+        function deleteMenu(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus menu ini?')) {
+                menuData = menuData.filter((item, index) => (item.id !== id && index != id));
                 db.ref('menus').set(menuData);
             }
         }
