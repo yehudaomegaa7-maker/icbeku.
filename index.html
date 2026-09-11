@@ -482,8 +482,8 @@
                                 <button class="tab-btn active" onclick="filterCategory('ALL')">Semua</button>
                                 <button class="tab-btn" onclick="filterCategory('C8')">Cone 8K</button>
                                 <button class="tab-btn" onclick="filterCategory('C10')">Cone 10K</button>
+                                <button class="tab-btn" onclick="filterCategory('S8')">Sundae 8K</button>
                                 <button class="tab-btn" onclick="filterCategory('S10')">Sundae 10K</button>
-                                <button class="tab-btn" onclick="filterCategory('S11')">Sundae 11K</button>
                                 <button class="tab-btn" onclick="filterCategory('S12')">Sundae 12K</button>
                                 <button class="tab-btn" onclick="filterCategory('Float & Lainnya')">Float & Lainnya</button>
                             </div>
@@ -558,8 +558,8 @@
                             <option value="ALL">Semua Kategori</option>
                             <option value="C8">C8</option>
                             <option value="C10">C10</option>
+                            <option value="S8">S8</option>
                             <option value="S10">S10</option>
-                            <option value="S11">S11</option>
                             <option value="S12">S12</option>
                             <option value="Float & Lainnya">Float & Lainnya</option>
                         </select>
@@ -629,13 +629,13 @@
                             <select id="new-menu-cat" class="form-input">
                                 <option value="C8">C8 (Cone 8K)</option>
                                 <option value="C10">C10 (Cone 10K)</option>
+                                <option value="S8">S8 (Sundae 8K)</option>
                                 <option value="S10">S10 (Sundae 10K)</option>
-                                <option value="S11">S11 (Sundae 11K)</option>
                                 <option value="S12">S12 (Sundae 12K)</option>
                                 <option value="Float & Lainnya">Float & Lainnya</option>
                             </select>
-                            <input type="text" id="new-menu-name" class="form-input" placeholder="Nama Menu (misal: Vanilla Deluxe)">
-                            <input type="number" id="new-menu-price" class="form-input" placeholder="Harga (misal: 10000)">
+                            <input type="text" id="new-menu-name" class="form-input" placeholder="Nama Menu (misal: Sundae Chocolate)">
+                            <input type="number" id="new-menu-price" class="form-input" placeholder="Harga (misal: 8000)">
                             <button class="btn btn-primary" onclick="addNewMenu()">Simpan Menu</button>
                         </div>
                     </div>
@@ -675,7 +675,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // INITIAL DEFAULT MENUS (Telah Disesuaikan)
+        // INITIAL DEFAULT MENUS
         const DEFAULT_MENUS = [
             { id: 'C8-1', cat: 'C8', name: 'Cokelat Celup', price: 8000 },
             { id: 'C8-2', cat: 'C8', name: 'Strawberry Celup', price: 8000 },
@@ -696,13 +696,13 @@
             { id: 'C10-8', cat: 'C10', name: 'Ceres Tabur', price: 10000 },
             { id: 'C10-9', cat: 'C10', name: 'Milo Tabur', price: 10000 },
             { id: 'C10-10', cat: 'C10', name: 'Caramel Tabur', price: 10000 },
-            { id: 'S10-1', cat: 'S10', name: 'Sundae Strawberry', price: 10000 },
-            { id: 'S10-2', cat: 'S10', name: 'Sundae Cokelat', price: 10000 },
-            { id: 'S10-3', cat: 'S10', name: 'Sundae Manggo', price: 10000 },
-            { id: 'S10-4', cat: 'S10', name: 'Sundae Kacang Cokelat', price: 10000 },
-            { id: 'S10-5', cat: 'S10', name: 'Sundae Tiramisu', price: 10000 },
-            { id: 'S10-6', cat: 'S10', name: 'Sundae Caramel', price: 10000 },
-            { id: 'S11-1', cat: 'S11', name: 'Sundae Chococrumble', price: 11000 },
+            { id: 'S8-1', cat: 'S8', name: 'Sundae Strawberry', price: 8000 },
+            { id: 'S8-2', cat: 'S8', name: 'Sundae Cokelat', price: 8000 },
+            { id: 'S8-3', cat: 'S8', name: 'Sundae Manggo', price: 8000 },
+            { id: 'S8-4', cat: 'S8', name: 'Sundae Kacang Cokelat', price: 8000 },
+            { id: 'S8-5', cat: 'S8', name: 'Sundae Tiramisu', price: 8000 },
+            { id: 'S8-6', cat: 'S8', name: 'Sundae Caramel', price: 8000 },
+            { id: 'S10-1', cat: 'S10', name: 'Sundae Chococrumble', price: 10000 },
             { id: 'S12-1', cat: 'S12', name: 'Sundae Dua Toping', price: 12000 },
             { id: 'FL-1', cat: 'Float & Lainnya', name: 'Coffe Float', price: 15000 },
             { id: 'FL-2', cat: 'Float & Lainnya', name: 'Mineral', price: 5000 },
